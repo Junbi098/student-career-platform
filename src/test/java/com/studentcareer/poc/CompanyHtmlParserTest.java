@@ -95,4 +95,42 @@ class CompanyHtmlParserTest {
     void shouldReturnEmptyForNullHtml() {
         assertTrue(parser.parse(null).isEmpty());
     }
+    @Test
+    void shouldReturnEmptyForEmptyHtml() {
+        assertTrue(parser.parse("").isEmpty());
+    }
+
+    @Test
+    void shouldReadNameFromUnclosedHtml() {
+        assertEquals("Island", parser.parse("<h1 class='company-name'>Island")
+                .orElseThrow().getName());
+    }
+
+    @Test
+    void shouldUseFirstMatchingName() {
+        String html = "<h1 class='company-name'>First</h1><h1 class='company-name'>Second</h1>";
+        assertEquals("First", parser.parse(html).orElseThrow().getName());
+    }
+
+    @Test
+    void shouldKeepEmptyFirstNameAsMissing() {
+        String html = "<h1 class='company-name'> </h1><h1 class='company-name'>Second</h1>";
+        assertTrue(parser.parse(html).isEmpty());
+    }
+
+    @Test
+    void shouldTreatMissingHrefAsUnknown() {
+        String html = "<h1 class='company-name'>Island</h1><a class='company-website'>Website</a>";
+        assertNull(parser.parse(html).orElseThrow().getWebsite());
+    }
+
+    @Test
+    void shouldTreatInvalidWebsiteAsUnknown() {
+        for (String website : new String[]{"not a URL", "javascript:alert(1)", "/about", "https:/missing"}) {
+            String html = "<h1 class='company-name'>Island</h1><a class='company-website' href='"
+                    + website + "'>Website</a>";
+            assertNull(parser.parse(html).orElseThrow().getWebsite());
+        }
+    }
+
 }

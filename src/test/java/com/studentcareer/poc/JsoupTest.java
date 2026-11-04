@@ -63,4 +63,14 @@ class JsoupTest {
         );
     }
 
+    @Test
+    void shouldUseFirstNameConsistentlyWithParser() {
+        assertEquals(Optional.of("First"), new CompanyNameExtractor().extract(
+                "<h1 class='company-name'>First</h1><h1 class='company-name'>Second</h1>"));
+    }
+
+    @Test
+    void shouldAcceptNullHtmlAsMissing() {
+        assertEquals(Optional.empty(), new CompanyNameExtractor().extract(null));
+    }
 }

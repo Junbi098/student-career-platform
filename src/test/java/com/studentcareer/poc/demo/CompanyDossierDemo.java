@@ -41,8 +41,8 @@ public class CompanyDossierDemo {
         // Reference fictive pour notre demonstration locale.
         // Aucune page web n'est consultee.
         SourceReference source = new SourceReference(
-                URI.create("https://example.com/fictional-company"),
-                "Fictional test source - not fetched",
+                resource.toURI(),
+                "Local fictional fixture - not a web observation",
                 Instant.now()
         );
 

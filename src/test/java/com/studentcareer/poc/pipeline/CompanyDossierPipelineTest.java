@@ -33,9 +33,9 @@ class CompanyDossierPipelineTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private SourceReference createFictionalSource() {
+    private SourceReference createFictionalSource(URI uri) {
         return new SourceReference(
-                URI.create("https://example.com/fictional-company"),
+                uri,
                 "Fictional test source - not fetched",
                 Instant.parse("2026-10-27T12:00:00Z")
         );
@@ -52,7 +52,7 @@ class CompanyDossierPipelineTest {
 
         Optional<String> result = pipeline.execute(
                 resource.toURI(),
-                createFictionalSource()
+                createFictionalSource(resource.toURI())
         );
 
         assertTrue(result.isPresent());
@@ -100,7 +100,7 @@ class CompanyDossierPipelineTest {
 
             Optional<String> result = pipeline.execute(
                     file.toUri(),
-                    createFictionalSource()
+                    createFictionalSource(file.toUri())
             );
 
             assertTrue(result.isEmpty());
@@ -121,8 +121,15 @@ class CompanyDossierPipelineTest {
                 IOException.class,
                 () -> pipeline.execute(
                         missingFile,
-                        createFictionalSource()
+                        createFictionalSource(missingFile)
                 )
         );
     }
+    @Test
+    void shouldRejectUnrelatedSourceReference() {
+        assertThrows(IllegalArgumentException.class, () -> pipeline.execute(
+                URI.create("file:///fixture.html"),
+                createFictionalSource(URI.create("https://example.com/not-read"))));
+    }
+
 }

@@ -49,7 +49,7 @@ class SourceReferenceTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> new SourceReference(
-                        URI.create("file:///example.html"),
+                        URI.create("ftp://example.com/example.html"),
                         "Local file",
                         accessedAt
                 )
@@ -79,4 +79,17 @@ class SourceReferenceTest {
                 )
         );
     }
+    @Test
+    void shouldAcceptLocalSource() {
+        URI uri = URI.create("file:///C:/fixtures/company.html");
+        SourceReference source = new SourceReference(uri, "Fictional local fixture", accessedAt);
+        assertEquals(uri, source.getUrl());
+    }
+
+    @Test
+    void shouldRejectWebUrlWithoutHost() {
+        assertThrows(IllegalArgumentException.class, () -> new SourceReference(
+                URI.create("https:/missing-host"), "Invalid source", accessedAt));
+    }
+
 }

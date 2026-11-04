@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.util.Optional;
+import java.net.URI;
 
 public class CompanyHtmlParser {
 
@@ -34,6 +35,8 @@ public class CompanyHtmlParser {
         String website = extractAttribute(
                 document, ".company-website", "href"
         );
+
+        website = validWebsite(website);
 
         return Optional.of(
                 new Company(name, website, industry, location)
@@ -69,5 +72,18 @@ public class CompanyHtmlParser {
         String value = element.attr(attribute).trim();
 
         return value.isEmpty() ? null : value;
+    }
+    private String validWebsite(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(value);
+            boolean web = "https".equalsIgnoreCase(uri.getScheme())
+                    || "http".equalsIgnoreCase(uri.getScheme());
+            return web && uri.getHost() != null ? value : null;
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 }

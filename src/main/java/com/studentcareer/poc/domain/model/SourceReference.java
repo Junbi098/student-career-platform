@@ -20,12 +20,15 @@ public class SourceReference {
 
         String scheme = url.getScheme();
 
-        if (scheme == null
-                || (!scheme.equalsIgnoreCase("http")
-                && !scheme.equalsIgnoreCase("https"))
-                || url.getHost() == null) {
+        boolean web = ("http".equalsIgnoreCase(scheme)
+                || "https".equalsIgnoreCase(scheme)) && url.getHost() != null;
+        boolean local = "file".equalsIgnoreCase(scheme)
+                && url.isAbsolute() && !url.isOpaque()
+                && url.getPath() != null && url.getPath().startsWith("/")
+                && url.getQuery() == null && url.getFragment() == null;
+        if (!web && !local) {
             throw new IllegalArgumentException(
-                    "Source URL must be HTTP or HTTPS with a host"
+                    "Source must be an absolute local file URI or HTTP(S) URL with a host"
             );
         }
 

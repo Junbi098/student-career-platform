@@ -6,7 +6,6 @@ import com.studentcareer.poc.domain.model.CompanyDossier;
 import com.studentcareer.poc.domain.model.SourceReference;
 import com.studentcareer.poc.output.CompanyDossierJsonWriter;
 import com.studentcareer.poc.service.CompanyIntelligenceService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -32,6 +31,10 @@ public class CompanyDossierPipeline {
     ) throws IOException {
 
         Objects.requireNonNull(source, "Source is required");
+
+        if (localFileUri == null || !localFileUri.normalize().equals(source.getUrl().normalize())) {
+            throw new IllegalArgumentException("Source reference must match the URI being read");
+        }
 
         Optional<Company> company =
                 service.analyze(localFileUri);
