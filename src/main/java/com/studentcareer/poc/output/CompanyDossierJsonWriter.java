@@ -18,6 +18,10 @@ public class CompanyDossierJsonWriter {
     public String write(CompanyDossier dossier)
             throws JsonProcessingException {
 
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(toData(dossier));
+    }
+
+    Map<String, Object> toData(CompanyDossier dossier) {
         Objects.requireNonNull(dossier, "Dossier is required");
 
         Company company = dossier.getCompany();
@@ -32,6 +36,7 @@ public class CompanyDossierJsonWriter {
         Map<String, Object> sourceData = new LinkedHashMap<>();
         sourceData.put("url", source.getUrl().toString());
         sourceData.put("title", source.getTitle());
+        sourceData.put("kind", source.getKind().name());
         sourceData.put(
                 "accessedAt",
                 source.getAccessedAt().toString()
@@ -41,8 +46,6 @@ public class CompanyDossierJsonWriter {
         dossierData.put("company", companyData);
         dossierData.put("source", sourceData);
 
-        return mapper
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(dossierData);
+        return dossierData;
     }
 }

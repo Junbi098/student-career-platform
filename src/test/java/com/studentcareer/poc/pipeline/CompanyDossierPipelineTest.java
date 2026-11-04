@@ -4,7 +4,7 @@ package com.studentcareer.poc.pipeline;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studentcareer.poc.CompanyHtmlParser;
-import com.studentcareer.poc.domain.model.SourceReference;
+import com.studentcareer.poc.domain.model.SourceKind;
 import com.studentcareer.poc.fetch.LocalFileSourceFetcher;
 import com.studentcareer.poc.output.CompanyDossierJsonWriter;
 import com.studentcareer.poc.service.CompanyIntelligenceService;
@@ -15,7 +15,6 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,14 +32,6 @@ class CompanyDossierPipelineTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private SourceReference createFictionalSource(URI uri) {
-        return new SourceReference(
-                uri,
-                "Fictional test source - not fetched",
-                Instant.parse("2026-10-27T12:00:00Z")
-        );
-    }
-
     @Test
     void shouldGenerateJsonFromLocalHtml() throws Exception {
 
@@ -52,12 +43,16 @@ class CompanyDossierPipelineTest {
 
         Optional<String> result = pipeline.execute(
                 resource.toURI(),
-                createFictionalSource(resource.toURI())
+                SourceKind.FIXTURE
         );
 
         assertTrue(result.isPresent());
 
         JsonNode root = mapper.readTree(result.orElseThrow());
+        assertEquals("FIXTURE", root.path("source").path("kind").asText());
+        assertEquals(Path.of(resource.toURI()).toRealPath().toUri().toString(),
+                root.path("source").path("url").asText());
+        assertDoesNotThrow(() -> java.time.Instant.parse(root.path("source").path("accessedAt").asText()));
 
         assertEquals(
                 "Island Digital Studio",
@@ -80,7 +75,7 @@ class CompanyDossierPipelineTest {
         );
 
         assertEquals(
-                "Fictional test source - not fetched",
+                "Fictional local fixture: company-complete.html",
                 root.path("source").path("title").asText()
         );
     }
@@ -100,7 +95,7 @@ class CompanyDossierPipelineTest {
 
             Optional<String> result = pipeline.execute(
                     file.toUri(),
-                    createFictionalSource(file.toUri())
+                    SourceKind.FIXTURE
             );
 
             assertTrue(result.isEmpty());
@@ -121,15 +116,13 @@ class CompanyDossierPipelineTest {
                 IOException.class,
                 () -> pipeline.execute(
                         missingFile,
-                        createFictionalSource(missingFile)
+                        SourceKind.FIXTURE
                 )
         );
     }
     @Test
-    void shouldRejectUnrelatedSourceReference() {
+    void shouldRejectWebInputWithoutClaimingItWasRead() {
         assertThrows(IllegalArgumentException.class, () -> pipeline.execute(
-                URI.create("file:///fixture.html"),
-                createFictionalSource(URI.create("https://example.com/not-read"))));
+                URI.create("https://example.com/not-read"), SourceKind.LOCAL_DOCUMENT));
     }
-
 }

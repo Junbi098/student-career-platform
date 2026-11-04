@@ -44,6 +44,7 @@ class CompanyDossierJsonWriterTest {
         String json = writer.write(dossier);
 
         JsonNode root = mapper.readTree(json);
+        assertEquals("UNCLASSIFIED", root.path("source").path("kind").asText());
 
         assertEquals(
                 "Island Digital Studio",

@@ -1,22 +1,32 @@
 # Suivi du projet
 
-## Methode
+## Méthode
 
-Developpement par semaine, puis checkpoint avec changements, tests et procedure locale.
+Avant chaque semaine : rappeler objectifs, résultat attendu et notions abordées.
+Développer la semaine, puis checkpoint avec changements, tests et procédure locale.
 Chaque commit et chaque push exigent une validation explicite de l'utilisateur.
+Ne pas démarrer la semaine suivante avant le checkpoint.
 
-## Semaine 1
+## Semaine 1 — validée et publiée
 
-- Jours 1 a 5 deja presents : lecture HTML locale et export JSON.
-- Jour 6 : cas limites du parseur, validation du site web, extracteur historique aligne,
-  correspondance entre URI lue et provenance, tests supplementaires.
-- Jour 7 : README actualise et decisions de provenance documentees.
-- Aucun acces web de collecte, aucune installation et aucun reglage Git global modifies.
-- Validation locale utilisateur et commit/push encore a effectuer.
-- La date et le caractere fictif restent des metadonnees declarees ; leur production par
-  le lecteur et un statut structure seront necessaires avant une collecte reelle.
+- POC HTML local vers dossier JSON, cas limites et première correction de provenance.
+- 44 tests réussis ; démonstration exécutée ; validation IntelliJ confirmée par l'utilisateur.
+- Commit b8b2caa poussé sur main après accord explicite.
 
-## Prochain checkpoint
+## Semaine 2 — validée localement
 
-Valider les tests et la demonstration dans IntelliJ, relire les changements,
-puis autoriser explicitement le commit et le push. Definir ensuite la semaine 2.
+- Lecture avec provenance, date issue du lecteur et catégorie structurée.
+- Normalisation Unicode et espaces ; comparaison prudente des doublons.
+- Traitement par lot : erreurs isolées, ordre et toutes les provenances conservés.
+- Bilan JSON, fixtures multiples et démonstration de répertoire local.
+- Compilation complète : 62 tests réussis, aucun échec, erreur ou test ignoré.
+- Démos individuelle, mixte et répertoire exécutées et sorties JSON vérifiées.
+- Aucun nouveau composant installé, aucune configuration globale Git ou Java changée.
+- Validation locale IntelliJ confirmée par l’utilisateur ; commit et push explicitement autorisés.
+
+## Prochaine action
+
+Publier le checkpoint autorisé, puis vérifier la synchronisation Git.
+Rappeler et fixer ensuite les objectifs de la semaine 3, sans démarrer une nouvelle phase implicitement.
+
+Les limites et décisions de la semaine 2 sont détaillées dans docs/WEEK_2.md.

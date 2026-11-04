@@ -2,18 +2,16 @@
 package com.studentcareer.poc.demo;
 
 import com.studentcareer.poc.CompanyHtmlParser;
-import com.studentcareer.poc.domain.model.SourceReference;
+import com.studentcareer.poc.domain.model.SourceKind;
 import com.studentcareer.poc.fetch.LocalFileSourceFetcher;
 import com.studentcareer.poc.output.CompanyDossierJsonWriter;
 import com.studentcareer.poc.pipeline.CompanyDossierPipeline;
 import com.studentcareer.poc.service.CompanyIntelligenceService;
 
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 
 public class CompanyDossierDemo {
 
@@ -38,17 +36,9 @@ public class CompanyDossierDemo {
             );
         }
 
-        // Reference fictive pour notre demonstration locale.
-        // Aucune page web n'est consultee.
-        SourceReference source = new SourceReference(
-                resource.toURI(),
-                "Local fictional fixture - not a web observation",
-                Instant.now()
-        );
-
         String json = pipeline.execute(
                 resource.toURI(),
-                source
+                SourceKind.FIXTURE
         ).orElseThrow(() -> new IllegalStateException(
                 "No company found in HTML"
         ));
