@@ -1,116 +1,66 @@
-# Student Career Intelligence Platform
+# Student Career Platform
 
-POC Java 21 pour organiser les informations sur les entreprises utiles aux étudiants à Maurice.
-Les entreprises des fixtures sont fictives. Aucun résultat ne signifie qu'une entreprise recrute.
-Aucun site web réel n'est consulté par cette application.
+Une application Java qui transforme des pages HTML en dossiers d'entreprises et permet de consulter ces dossiers avec une API.
+Pour le moment, toutes les données de démonstration sont fictives. L'application ne recherche pas encore de stages sur Internet.
 
-## Outils
+## Commencer ici
 
-Java 21, Maven, jsoup 1.23.2, JUnit Jupiter 5.12.2, Surefire 3.5.3 et Jackson 2.22.4.
-Ouvrir le dossier comme projet Maven dans IntelliJ et utiliser le JDK 21.
-Le Maven intégré à IntelliJ suffit ; aucune modification du PATH n'est nécessaire.
+1. Ouvrir ce dossier dans IntelliJ et recharger Maven.
+2. Exécuter le goal Maven `clean package`. Résultat attendu : **73 tests réussis**, `BUILD SUCCESS`.
+3. Dans le terminal PowerShell d'IntelliJ, lancer :
 
-## Architecture
-
-```text
-URI locale + catégorie
-  -> LocalFileSourceFetcher : HTML + provenance de lecture
-  -> CompanyIntelligenceService : parsing + normalisation + CompanyDossier
-  -> CompanyDossierPipeline : JSON individuel
-
-Liste de SourceRequest
-  -> CompanyBatchService : un résultat par entrée, dans le même ordre
-  -> CompanyBatchJsonWriter : résumé + résultats + dossiers et sources conservés
+```powershell
+.\scripts\Start-Api.ps1
 ```
 
-- Le nom est obligatoire ; les autres champs peuvent être inconnus (`null`).
-- Le premier élément de chaque sélecteur est utilisé. Un premier nom vide donne une absence d'entreprise.
-- Une URL de site doit être HTTP(S), absolue, avec un hôte ; sinon le site reste inconnu.
-- jsoup tolère du HTML incomplet ; cette tolérance ne vérifie pas la vérité des informations.
-- Le service normalise les espaces Unicode et les accents en forme NFC, sans changer la casse affichée.
-- Les chemins et paramètres des sites web sont conservés.
-- `Optional.empty()` signifie qu'aucun nom d'entreprise n'a été trouvé.
-- En mode individuel, les erreurs de lecture remontent comme `IOException`.
+4. Laisser ce terminal ouvert. Le serveur écoute sur `http://127.0.0.1:8080`.
+5. Suivre le [guide Postman, étape par étape](docs/POSTMAN_GUIDE.md).
 
-## Provenance
+Le lanceur applique uniquement à ce processus le réglage temporaire nécessaire à Java 21 sur ce poste Windows.
+Si les scripts PowerShell sont désactivés, la commande équivalente depuis la racine est :
 
-Le lecteur retourne `FetchedSource`, qui associe le HTML à sa `SourceReference`.
-Il résout le chemin réel (`toRealPath`), lit le contenu UTF-8, puis date la fin de lecture.
-Une `Clock` injectable rend les tests de date reproductibles, sans attendre le temps réel.
-Le pipeline prend désormais `execute(URI, SourceKind)` : il n'accepte plus une référence
-indépendante qui pourrait déclarer une autre URL ou une date arbitraire.
-Le JSON conserve `company` et `source` ; `source.kind` est un nouveau champ.
-
-Catégories :
-
-- `FIXTURE` : données fictives déclarées comme telles par l'appelant.
-- `LOCAL_DOCUMENT` : document local, sans preuve de consultation d'un site web ou de véracité.
-- `UNCLASSIFIED` : ancienne référence construite manuellement ; refusée à l'entrée du lecteur local.
-
-La catégorie est une déclaration de l'appelant, pas une détection automatique du contenu.
-La date décrit la lecture du fichier local, pas sa date de publication ni la consultation d'un site distant.
-Les constructions manuelles de `SourceReference` restent possibles pour les modèles et les tests,
-mais le pipeline utilise exclusivement la référence produite par le lecteur.
-
-## Traitement par lot et doublons
-
-| Statut | Signification |
-| --- | --- |
-| `SUCCESS` | Entreprise extraite et dossier conservé |
-| `POSSIBLE_DUPLICATE` | Correspondance avec une entrée précédente, dossier également conservé |
-| `NO_COMPANY` | Aucun nom extrait |
-| `READ_ERROR` | Fichier absent, répertoire ou autre erreur de lecture |
-| `INVALID_SOURCE` | URI ou catégorie non prise en charge, sans consultation web |
-
-Le lot continue après une erreur de lecture ou une entrée invalide.
-Une liste nulle ou contenant une requête nulle est une erreur d'appel, refusée avant traitement.
-
-La comparaison exige le même nom normalisé, comparé sans tenir compte de la casse, et le même
-site web. Pour cette comparaison uniquement : schéma et hôte sont comparés en minuscules,
-les ports HTTP/HTTPS par défaut sont ignorés et un chemin vide équivaut à `/`.
-Les fragments ne différencient pas les sites ; chemin, paramètres et éventuels identifiants restent distincts.
-Les catégories de source restent séparées : une fixture n'est jamais regroupée avec un document local.
-Sans site web, aucun doublon n'est proposé à partir du seul nom.
-
-Ces correspondances sont des pistes à vérifier, pas une résolution certaine de l'identité.
-Aucune donnée n'est fusionnée ou supprimée. `duplicateOf` référence la première source correspondante.
-Le JSON conserve chaque dossier et sa provenance, même en cas de doublon possible.
-Le traitement est séquentiel, en mémoire ; il ne conserve pas d'historique entre deux lots.
-
-## Checkpoint local dans IntelliJ
-
-1. Dans Maven, exécuter `clean test` (ou `mvn clean test` si Maven est accessible au terminal).
-2. Vérifier **62 tests**, zéro échec, zéro erreur, zéro test ignoré et **BUILD SUCCESS**.
-3. Ouvrir `src/test/java/com/studentcareer/poc/demo/CompanyDossierDemo.java` et lancer `main()`.
-4. Vérifier `target/demo-output/company-dossier.json` : entreprise Island Digital Studio,
-   source `file:`, catégorie `FIXTURE` et date de cette nouvelle lecture.
-5. Ouvrir `src/test/java/com/studentcareer/poc/demo/CompanyBatchDemo.java` et lancer `main()` sans argument.
-6. Vérifier `target/demo-output/company-batch.json` : total 6, `SUCCESS` 2 et chacun des quatre autres statuts 1.
-7. Dans `results`, le doublon conserve son dossier, sa propre source et le lien `duplicateOf`.
-   Les entrées en erreur n'ont pas de dossier et ne bloquent pas les entrées suivantes.
-
-Le répertoire de travail des deux démonstrations doit être la racine du projet.
-La démonstration mixte inclut volontairement un fichier absent et une URL web non lue.
-Les deux erreurs signalées dans son JSON sont donc attendues, sans échec du programme.
-Chaque exécution remplace uniquement son fichier de sortie sous `target/demo-output/`.
-
-### Essayer un répertoire de fixtures
-
-Dans la configuration d'exécution de `CompanyBatchDemo`, saisir dans **Program arguments** :
-
-```text
-src/test/resources/fixtures/batch FIXTURE
+```powershell
+java -Djdk.net.unixdomain.tmpdir=target -jar target/student-career-platform-1.0-SNAPSHOT.jar
 ```
 
-Résultat attendu : 3 entrées, 2 réussites, 1 entreprise absente, aucune autre erreur.
-Seuls les fichiers `.html` directement présents sont lus, dans l'ordre des chemins ; les sous-dossiers
-ne sont pas parcourus. Pour un autre répertoire, utiliser `"C:/chemin avec espaces" FIXTURE`
-ou `"C:/chemin avec espaces" LOCAL_DOCUMENT` selon la nature des documents.
-Le mode sans argument reste disponible en vidant le champ Program arguments.
-Un répertoire invalide arrête la démonstration ; un fichier individuel illisible n'arrête pas le lot.
+Pour démarrer avec le bouton Run d'IntelliJ, lancer `StudentCareerApplication.main()` et mettre dans les **VM options** :
+`-Djdk.net.unixdomain.tmpdir=D:/Travail/06_Projets_Java/student-career-platform/target`.
+Le dossier target est créé par Maven. Aucun réglage global Windows ou Java n'est nécessaire.
 
-## Avant les sources réelles
+## Comprendre le projet
 
-Voir [les décisions de la semaine 2](docs/WEEK_2.md).
-Aucun fetcher HTTP, navigateur automatisé, base de données ou backend Spring n'est encore installé.
-Les fichiers `target/` et `.idea/` restent exclus de Git.
+- [Explication de l'API et exercices Postman](docs/POSTMAN_GUIDE.md)
+- [Organisation du code et noms des classes](docs/ARCHITECTURE.md)
+- [Suivi du développement](docs/PROGRESS.md)
+
+## Ce que vous devez obtenir
+
+Le catalogue est vide au démarrage. Une requête POST charge quatre fichiers HTML fictifs.
+Deux entreprises sont reconnues, une seconde source correspond à un doublon possible et un fichier ne contient pas de nom.
+L'application conserve **trois dossiers pour deux entreprises fictives distinctes**, avec leurs sources.
+Vous pouvez ensuite les consulter et les rechercher avec des requêtes GET.
+Arrêter le serveur efface ce catalogue temporaire. Ctrl+C arrête le lanceur.
+
+## Tests et outils
+
+Java 21, Spring Boot 4.1.2, Maven, jsoup 1.23.2, JUnit Jupiter 6.0.3 et Surefire 3.5.6.
+Les exports existants utilisent Jackson 2.22.4 ; Spring Boot utilise Jackson 3 pour les réponses HTTP.
+Les 73 tests couvrent le parsing, les sources, les exports, les lots, les recherches et les requêtes HTTP.
+Cinq anciens tests ont été retirés : une addition de démonstration et quatre cas d'un ancien extracteur
+qui répétaient ceux du parseur conservé. Aucune vérification métier distincte n'a été supprimée.
+
+Les deux exemples d'export restent exécutables dans IntelliJ sous `src/test/java/com/studentcareer/examples` :
+`SingleCompanyExportExample` et `BatchCompanyExportExample`. Ils écrivent dans `target/demo-output/`.
+Les fixtures partagées par l'API et les tests sont dans `src/main/resources/demo/`.
+
+Vérification PowerShell complémentaire, une fois le serveur démarré :
+
+```powershell
+.\scripts\Test-Api.ps1
+```
+
+Si le port 8080 est occupé, lancer `Start-Api.ps1 -Port 8081`, modifier `baseUrl` dans Postman
+et utiliser `Test-Api.ps1 -BaseUrl http://127.0.0.1:8081`.
+Les avertissements Mockito pendant les tests sont non bloquants ; vérifier le bilan Maven final.
+Les notes WEEK_2.md et WEEK_3.md décrivent l'historique : leurs anciens noms de classes ne sont plus les noms actuels.
+Les dossiers générés target/ et les réglages personnels .idea/ restent exclus de Git.

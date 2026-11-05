@@ -1,0 +1,248 @@
+{
+  "info": {
+    "name": "Student Career Platform - Premiers tests",
+    "description": "Exécuter de 01 à 11. Démarrer le serveur avant de commencer. Données fictives, stockage en mémoire.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8080",
+      "type": "string"
+    },
+    {
+      "key": "companyId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Vérifier le serveur",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/status",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Consulter le catalogue avant import",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Charger les entreprises fictives",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/imports/demo",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Import fictif de quatre fichiers\", function () { const report = pm.response.json(); pm.expect(report.mode).to.eql(\"FICTIONAL_DEMO\"); pm.expect(report.total).to.eql(4); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Consulter les trois dossiers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Trois dossiers conservés\", function () { pm.expect(pm.response.json().totalElements).to.eql(3); });",
+              "const page = pm.response.json(); if (page.items && page.items.length) { pm.collectionVariables.set(\"companyId\", page.items[0].id); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Lire le détail du premier dossier",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies/{{companyId}}",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Source fictive présente\", function () { pm.expect(pm.response.json().source.kind).to.eql(\"FIXTURE\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Rechercher Island à Ebene",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?q=island&location=ebene",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Deux dossiers correspondants\", function () { pm.expect(pm.response.json().totalElements).to.eql(2); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Voir la deuxième page",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?page=1&size=2",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Dernière page avec un dossier\", function () { pm.expect(pm.response.json().items.length).to.eql(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Essayer une taille de page invalide",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?size=101",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Essayer un identifiant inconnu",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies/00000000-0000-0000-0000-000000000000",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Réimporter les mêmes fichiers",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/imports/demo",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Vérifier le nombre de dossiers après réimport",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies",
+        "description": "Aucun corps à fournir. Cliquer sur Send."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Trois dossiers conservés\", function () { pm.expect(pm.response.json().totalElements).to.eql(3); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
