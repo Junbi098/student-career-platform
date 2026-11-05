@@ -104,3 +104,13 @@ CompanyDossierEntity / SourceReferenceEntity sont dans company.persistence. Le d
 reste que dans src/test/java. Flyway crée les tables avant leur validation par Hibernate.
 L'adaptateur retourne les objets métier déjà utilisés par les contrôleurs : les routes restent inchangées.
 Voir WEEK_4.md pour le modèle d'observation, l'isolation des tests et le schéma.
+
+## Phase 2 — opportunités
+
+Le package opportunity regroupe model (contrats et états), service (validation, détection JSON-LD,
+vérification et recherche) et persistence (entités JPA et repositories). OpportunityController expose
+les routes /api/opportunities. common.text.SearchText normalise accents et espaces pour les recherches.
+Flyway V2 ajoute opportunities et opportunity_reviews sans modifier V1. Chaque offre référence un
+dossier d'entreprise existant, pas une identité juridique fusionnée entre plusieurs sources.
+Les échéances sont évaluées avec une Clock injectable et le fuseau de Maurice pour les dates sans heure.
+Voir PHASE_2.md pour les règles de statut et les limites du classement en mémoire.

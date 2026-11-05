@@ -2,6 +2,10 @@ package com.studentcareer.web.error;
 
 import com.studentcareer.common.exception.InvalidRequestException;
 import com.studentcareer.company.exception.CompanyNotFoundException;
+import com.studentcareer.opportunity.service.OpportunityConflictException;
+import com.studentcareer.opportunity.service.OpportunityNotFoundException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import com.studentcareer.company.exception.CollectionRateLimitException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.dao.DataAccessException;
@@ -17,8 +21,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
-    @ExceptionHandler(CompanyNotFoundException.class)
-    public ProblemDetail notFound(CompanyNotFoundException exception) {
+    @ExceptionHandler({CompanyNotFoundException.class, OpportunityNotFoundException.class})
+    public ProblemDetail notFound(RuntimeException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
@@ -32,6 +36,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .header("Retry-After", Long.toString(exception.getRetryAfter())).body(problem);
+    }
+
+    @ExceptionHandler({OpportunityConflictException.class, OptimisticLockingFailureException.class, DataIntegrityViolationException.class})
+    public ProblemDetail conflict(RuntimeException exception) {
+        String message = exception instanceof OpportunityConflictException ? exception.getMessage()
+                : "Request conflicts with stored data; reload before retrying";
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, message);
     }
 
     @ExceptionHandler(DataAccessException.class)

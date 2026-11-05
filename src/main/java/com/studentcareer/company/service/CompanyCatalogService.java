@@ -53,8 +53,7 @@ public class CompanyCatalogService {
     }
 
     private String normalize(String value) {
-        return value == null ? "" : Normalizer.normalize(value, Normalizer.Form.NFC)
-                .replaceAll("(?U)\\s+", " ").strip().toLowerCase(Locale.ROOT);
+        return com.studentcareer.common.text.SearchText.normalize(value);
     }
 
     public record CatalogPage(List<CompanyCatalogEntry> items, int page, int size,

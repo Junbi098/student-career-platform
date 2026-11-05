@@ -110,3 +110,20 @@ Rappeler les objectifs de la semaine 5 avant de la commencer.
 - Java temporaire de vérification arrêté ; redémarrage utilisateur nécessaire pour appliquer la désactivation à son ancien processus.
 - Persistance des observations réelles, réimport et nettoyage validés par l’utilisateur.
 - Commit et push de la semaine 4, nettoyage inclus, explicitement autorisés.
+
+## Checkpoint phase 2 — semaines 5, 6 et 7
+
+- Semaine 4 publiée : commit f1f5845, après autorisation utilisateur.
+- Semaine 5 : modèle stages/emplois juniors, association à une entreprise, critères explicites, CRUD sans suppression et persistance Flyway V2.
+- Semaine 6 : détection JSON-LD JobPosting dans du HTML fourni, réimport sans doublon, changement invalidant la confirmation, historique, fermeture, expiration et ancienneté de vérification.
+- Semaine 7 : recherche par texte, domaine, lieu, type, mode de travail, éligibilité et statut ; classement explicable et pagination.
+- 148 tests JUnit réussis, aucun échec ni erreur. Parcours HTTP de la collection : 25 requêtes, 43 assertions réussies sur student_career_test.
+- Exemples fictifs uniquement dans la base de test ; aucune collecte d'annonce réelle et aucun robot général de recherche Web.
+- L'éligibilité inconnue reste inconnue ; une localisation ne prouve pas un droit au travail. La confirmation repose sur une déclaration manuelle et une référence de source.
+- Recherche en mémoire adaptée au catalogue initial ; pas encore de collecte planifiée, authentification ou contrôle des rôles (phases suivantes).
+- Parcours exécuté directement dans Postman : 25 requêtes, 43 assertions réussies, zéro échec et zéro erreur.
+- Résultats présentés à l’utilisateur ; commit et push de la phase 2 explicitement autorisés.
+
+Prochaine étape : rappeler les objectifs de la semaine 8 avant de commencer le frontend React.
+
+- Redémarrage du JAR vérifié sur la base de test : mêmes identifiants, version, statut, cinq événements de vérification et origine HTML conservés. Serveurs temporaires arrêtés.

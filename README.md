@@ -1,14 +1,14 @@
 # Student Career Platform
 
 Une application Java qui transforme des documents HTML ou des fiches JSON Wikidata en dossiers d’entreprises et permet de les consulter avec une API.
-Pour le moment, toutes les données de démonstration sont fictives. L'application ne recherche pas encore de stages sur Internet.
+Les observations Wikidata réelles sont séparées des exemples fictifs de test. L'application ne recherche pas encore de stages sur Internet.
 
 ## Commencer ici
 
 1. Ouvrir ce dossier dans IntelliJ et recharger Maven.
    Pour la première préparation locale : exécuter `.\scripts\Initialize-Database.ps1` dans le terminal.
    Aux démarrages suivants : `.\scripts\Start-Database.ps1` avant les tests ou un Run IntelliJ.
-2. Exécuter le goal Maven `clean package`. Résultat attendu : **109 tests réussis**, `BUILD SUCCESS`.
+2. Exécuter le goal Maven `clean package`. Résultat attendu : **148 tests réussis**, `BUILD SUCCESS`.
 3. Dans le terminal PowerShell d'IntelliJ, lancer :
 
 ```powershell
@@ -37,17 +37,13 @@ Le dossier target est créé par Maven. Aucun réglage global Windows ou Java n'
 
 ## Ce que vous devez obtenir
 
-Le catalogue est vide au démarrage. Une requête POST charge quatre fichiers HTML fictifs.
-Deux entreprises sont reconnues, une seconde source correspond à un doublon possible et un fichier ne contient pas de nom.
-L'application conserve **trois dossiers pour deux entreprises fictives distinctes**, avec leurs sources.
-Vous pouvez ensuite les consulter et les rechercher avec des requêtes GET.
-Les dossiers sont maintenant enregistrés dans PostgreSQL : arrêter le serveur ne les efface plus. Ctrl+C arrête le lanceur Java.
+Le catalogue applicatif conserve les observations Web déjà importées. Les exemples fictifs restent dans la base de test. Les entreprises, opportunités et historiques sont conservés après redémarrage. Ctrl+C arrête Java.
 
 ## Tests et outils
 
 Java 21, Spring Boot 4.1.2, Maven, jsoup 1.23.2, JUnit Jupiter 6.0.3 et Surefire 3.5.6.
 Les exports existants utilisent Jackson 2.22.4 ; Spring Boot utilise Jackson 3 pour les réponses HTTP.
-Les 109 tests couvrent le parsing, les sources, les exports, les lots, les recherches et les requêtes HTTP.
+Les 148 tests couvrent le parsing, les sources, les exports, les lots, les recherches et les requêtes HTTP.
 Cinq anciens tests ont été retirés : une addition de démonstration et quatre cas d'un ancien extracteur
 qui répétaient ceux du parseur conservé. Aucune vérification métier distincte n'a été supprimée.
 
@@ -132,3 +128,17 @@ il n'est exécuté ni au démarrage ni par Flyway.
 Le script Test-Api.ps1 vérifie maintenant le catalogue en lecture seule ; -IncludeDemo est réservé
 à un environnement de démonstration explicitement activé. Les anciennes collections de démonstration
 contiennent donc des POST qui sont volontairement indisponibles dans la configuration applicative normale.
+
+## Phase 2 — semaines 5 à 7
+
+Stages et emplois juniors liés aux dossiers d'entreprises, saisie et import de HTML JobPosting fourni,
+provenance déclarée, doublons, historique de vérification, expiration et recherche filtrée.
+Une offre doit être confirmée manuellement ; aucune annonce réelle n'est inventée ou collectée automatiquement.
+
+- [Fonctionnement et limites](docs/PHASE_2.md)
+- [Exercices Postman isolés](docs/PHASE_2_POSTMAN.md)
+- Collection : postman/Phase-2-Test.postman_collection.json
+- Démarrage des exercices : `.\scripts\Start-TestApi.ps1` sur le port 8081, base student_career_test.
+
+Bilan automatique : 148 tests JUnit réussis ; parcours HTTP de 25 requêtes et 43 assertions réussi.
+Le parcours a aussi été exécuté directement dans Postman : 43 vérifications réussies, aucun échec.

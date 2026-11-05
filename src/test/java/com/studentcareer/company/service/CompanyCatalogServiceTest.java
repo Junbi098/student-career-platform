@@ -101,4 +101,9 @@ class CompanyCatalogServiceTest {
     void shouldReportUnknownIdentifier() {
         assertThrows(CompanyNotFoundException.class, () -> service.find(UUID.randomUUID()));
     }
+    @Test
+    void shouldSearchAccentsAndWhitespaceConsistently() {
+        catalog.saveAll(List.of(item("accent", "Café Studio", "Software", "Ébène")));
+        assertEquals(1,service.search("cafe",null,"ebene",0,20).totalElements());
+    }
 }

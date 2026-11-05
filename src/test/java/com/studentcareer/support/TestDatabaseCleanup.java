@@ -10,6 +10,8 @@ public final class TestDatabaseCleanup {
         if (database == null || !database.endsWith("_test")) {
             throw new IllegalStateException("Refusing to clean a non-test database");
         }
+        jdbc.update("DELETE FROM opportunity_reviews");
+        jdbc.update("DELETE FROM opportunities");
         jdbc.update("DELETE FROM company_dossiers");
         jdbc.update("DELETE FROM source_references");
     }

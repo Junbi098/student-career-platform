@@ -15,8 +15,9 @@ public class StatusController {
     @GetMapping("/api/status")
     public StatusResponse status() {
         jdbc.queryForObject("SELECT 1", Integer.class);
-        return new StatusResponse("UP", "POSTGRESQL", "EXPLICIT_IMPORTS");
+        return new StatusResponse("UP", "POSTGRESQL", "EXPLICIT_IMPORTS",
+                jdbc.queryForObject("SELECT current_database()", String.class));
     }
 
-    public record StatusResponse(String status, String storage, String dataMode) { }
+    public record StatusResponse(String status, String storage, String dataMode, String database) { }
 }

@@ -1,0 +1,728 @@
+{
+  "info": {
+    "name": "PHASE 2 - TESTS ISOLÉS UNIQUEMENT",
+    "description": "Lancer Start-TestApi.ps1 et utiliser la base student_career_test. Chaque requête vérifie la base via /api/status avant exécution. Aucun appel aux sites employeurs. Exécuter dans l’ordre pour mémoriser les identifiants et versions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8081",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const status = await pm.sendRequest(pm.collectionVariables.get(\"baseUrl\") + \"/api/status\");",
+          "if (status.code !== 200 || status.json().database !== \"student_career_test\") {",
+          "    console.error(\"Parcours fictif réservé à student_career_test. Lancer Start-TestApi.ps1.\");",
+          "    pm.execution.skipRequest();",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Confirmer la base de test",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/status"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Base isolée\", function(){ pm.expect(pm.response.json().database).to.eql(\"student_career_test\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Préparer les entreprises fictives dans la base de test",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/imports/demo"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Choisir une entreprise de test",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?q=Island&size=100"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "const company=pm.response.json().items[0];",
+              "pm.collectionVariables.set(\"companyId\",company.id); pm.collectionVariables.set(\"companyName\",company.company.name);",
+              "pm.collectionVariables.set(\"runToken\",\"TESTPHASE2\"+Date.now());"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Créer une opportunité non vérifiée",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities",
+        "body": {
+          "mode": "raw",
+          "raw": "{{opportunityBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const token=pm.collectionVariables.get(\"runToken\");",
+              "const input={companyId:pm.collectionVariables.get(\"companyId\"),title:\"Stage Java \"+token,type:\"INTERNSHIP\",description:\"Annonce fictive pour apprendre les tests dans la base isolée.\",sector:\"Software\",location:\"Ébène, Mauritius\",workMode:\"HYBRID\",publishedOn:\"2020-01-01\",deadline:\"2099-12-31\",sourceUrl:\"https://example.test/jobs/\"+token,sourceTitle:\"Annonce synthétique de test\",externalReference:token,mauritianEligibility:\"UNKNOWN\",internationalEligibility:\"UNKNOWN\"};",
+              "pm.collectionVariables.set(\"opportunityBody\",JSON.stringify(input));",
+              "pm.collectionVariables.set(\"sourceUrl\",input.sourceUrl);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(201); });",
+              "const data=pm.response.json(); pm.collectionVariables.set(\"opportunityId\",data.id); pm.collectionVariables.set(\"version\",data.version);",
+              "pm.test(\"Pas de confirmation automatique\",function(){ pm.expect(data.status).to.eql(\"UNVERIFIED\"); pm.expect(data.sourceFetchedByServer).to.eql(false); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Lire son dossier",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities/{{opportunityId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Source non consultée par le serveur\",function(){ pm.expect(pm.response.json().sourceAccessedAt).to.eql(null); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Éligibilité inconnue exclue du filtre strict",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities?q={{runToken}}&studentType=INTERNATIONAL"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Aucune éligibilité inventée\",function(){ pm.expect(pm.response.json().totalElements).to.eql(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Inclure explicitement les éligibilités inconnues",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities?q={{runToken}}&studentType=INTERNATIONAL&includeUnknownEligibility=true"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Résultat à vérifier\",function(){ pm.expect(pm.response.json().totalElements).to.eql(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Refuser une confirmation sans consultation déclarée",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/{{opportunityId}}/review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\":{{version}},\"action\":\"CONFIRM\",\"sourceReviewed\":false,\"evidenceUrl\":\"{{sourceUrl}}\",\"notes\":\"Simulation dans une base de test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Simuler une confirmation manuelle",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/{{opportunityId}}/review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\":{{version}},\"action\":\"CONFIRM\",\"sourceReviewed\":true,\"evidenceUrl\":\"{{sourceUrl}}\",\"notes\":\"Confirmation simulée uniquement pour ce test fictif\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "const data=pm.response.json(); pm.collectionVariables.set(\"opportunityId\",data.id); pm.collectionVariables.set(\"version\",data.version);",
+              "pm.test(\"Confirmation fraîche\",function(){ pm.expect(data.status).to.eql(\"OPEN\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Chercher les opportunités confirmées",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities?q={{runToken}}&verifiedOnly=true&location=ebene"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Recherche avec accents\",function(){ pm.expect(pm.response.json().totalElements).to.eql(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Modifier le contenu et invalider la confirmation",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/{{opportunityId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\":{{version}},\"opportunity\":{{updatedBody}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const data=JSON.parse(pm.collectionVariables.get(\"opportunityBody\")); data.title+=\" actualisé\"; pm.collectionVariables.set(\"updatedBody\",JSON.stringify(data));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "const data=pm.response.json(); pm.collectionVariables.set(\"opportunityId\",data.id); pm.collectionVariables.set(\"version\",data.version);",
+              "pm.test(\"Nouvelle vérification nécessaire\",function(){ pm.expect(data.status).to.eql(\"UNVERIFIED\"); pm.expect(data.lastVerifiedAt).to.eql(null); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Consulter l’historique",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities/{{opportunityId}}/reviews"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Décisions conservées\",function(){ pm.expect(pm.response.json().length).to.eql(3); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Fermer l’opportunité",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/{{opportunityId}}/review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\":{{version}},\"action\":\"CLOSE\",\"notes\":\"Fermeture simulée pour le test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "const data=pm.response.json(); pm.collectionVariables.set(\"opportunityId\",data.id); pm.collectionVariables.set(\"version\",data.version);",
+              "pm.test(\"Fermée\",function(){ pm.expect(data.status).to.eql(\"CLOSED\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Vérifier son exclusion des résultats actifs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities?q={{runToken}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Pas de résultat fermé par défaut\",function(){ pm.expect(pm.response.json().totalElements).to.eql(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Consulter explicitement les fermées",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities?q={{runToken}}&status=CLOSED"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Historique consultable\",function(){ pm.expect(pm.response.json().totalElements).to.eql(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Rouvrir sans confirmer automatiquement",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/{{opportunityId}}/review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\":{{version}},\"action\":\"REOPEN\",\"notes\":\"Réouverture simulée pour le test\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "const data=pm.response.json(); pm.collectionVariables.set(\"opportunityId\",data.id); pm.collectionVariables.set(\"version\",data.version);",
+              "pm.test(\"Rouverte mais non vérifiée\",function(){ pm.expect(data.status).to.eql(\"UNVERIFIED\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 - Refuser le doublon",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities",
+        "body": {
+          "mode": "raw",
+          "raw": "{{opportunityBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(409); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 - Détecter une annonce JobPosting dans un HTML fourni",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/imports/html",
+        "body": {
+          "mode": "raw",
+          "raw": "{{htmlBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const token=pm.collectionVariables.get(\"runToken\");",
+              "const job={\"@context\":\"https://schema.org\",\"@type\":\"JobPosting\",title:\"HTML Java \"+token,description:\"<p>Annonce structurée fictive pour les tests.</p>\",employmentType:\"INTERN\",validThrough:\"2099-12-31\",identifier:{value:\"HTML-\"+token},hiringOrganization:{name:pm.collectionVariables.get(\"companyName\")}};",
+              "const request={companyId:pm.collectionVariables.get(\"companyId\"),sourceUrl:\"https://example.test/html/\"+token,sourceTitle:\"Document HTML synthétique\",html:\"<script type='application/ld+json'>\"+JSON.stringify(job)+\"</script>\"};",
+              "pm.collectionVariables.set(\"htmlBody\",JSON.stringify(request));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "const result=pm.response.json(); pm.collectionVariables.set(\"htmlId\",result.results[0].id); pm.test(\"Une annonce détectée\",function(){ pm.expect(result.created).to.eql(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 - Réimporter sans créer de doublon",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/imports/html",
+        "body": {
+          "mode": "raw",
+          "raw": "{{htmlBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Contenu inchangé\",function(){ pm.expect(pm.response.json().unchanged).to.eql(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 - Vérifier la provenance du HTML soumis",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities/{{htmlId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"URL déclarée, aucun accès Web inventé\",function(){ const data=pm.response.json(); pm.expect(data.origin).to.eql(\"HTML_SUBMISSION\"); pm.expect(data.sourceFetchedByServer).to.eql(false); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 - Enregistrer une annonce déjà expirée",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities",
+        "body": {
+          "mode": "raw",
+          "raw": "{{expiredBody}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const data=JSON.parse(pm.collectionVariables.get(\"opportunityBody\")); data.externalReference+=\"-expired\"; data.sourceUrl+=\"-expired\"; data.title=\"Ancienne annonce \"+pm.collectionVariables.get(\"runToken\"); data.deadline=\"2020-01-02\"; pm.collectionVariables.set(\"expiredBody\",JSON.stringify(data));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(201); });",
+              "const data=pm.response.json(); pm.collectionVariables.set(\"expiredId\",data.id); pm.collectionVariables.set(\"expiredVersion\",data.version); pm.collectionVariables.set(\"expiredSource\",data.details.sourceUrl); pm.test(\"Expiration effective\",function(){ pm.expect(data.status).to.eql(\"EXPIRED\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 - Consulter les expirées explicitement",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities?q={{runToken}}&status=EXPIRED"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(200); });",
+              "pm.test(\"Annonce expirée identifiée\",function(){ pm.expect(pm.response.json().totalElements).to.eql(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 - Refuser la confirmation d’une annonce expirée",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/opportunities/{{expiredId}}/review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\":{{expiredVersion}},\"action\":\"CONFIRM\",\"sourceReviewed\":true,\"evidenceUrl\":\"{{expiredSource}}\",\"notes\":\"Vérification simulée pour une ancienne annonce\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(409); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 - Vérifier la validation de pagination",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities?size=101"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 - Vérifier une ressource inexistante",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/opportunities/00000000-0000-0000-0000-000000000000"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut attendu\", function(){ pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
