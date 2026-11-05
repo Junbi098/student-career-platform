@@ -97,4 +97,15 @@ class CompanyApiIntegrationTest {
         assertEquals(405, request("GET", "/api/imports/demo", null).statusCode());
         assertEquals(405, request("POST", "/api/companies", "{}").statusCode());
     }
+    @Test
+    void shouldExposeSourceRegistryAndRejectArbitraryInputWithoutNetworkCollection() throws Exception {
+        JsonNode registry = get("/api/sources");
+        assertEquals("CURATED_SEEDS", registry.path("discoveryMode").asText());
+        assertEquals("UNVERIFIED", registry.path("verificationStatus").asText());
+        assertEquals(3, registry.path("sources").size());
+        assertEquals("CC0-1.0", registry.path("sources").get(0).path("license").asText());
+        var response = request("POST", "/api/imports/wikidata", mapper.writeValueAsString(java.util.Map.of("url", "http://localhost/private")));
+        assertEquals(400, response.statusCode());
+        assertEquals(405, request("GET", "/api/imports/wikidata", null).statusCode());
+    }
 }

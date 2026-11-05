@@ -42,7 +42,7 @@ public class CompanyBatchImportService {
             }
             if (result.isEmpty()) {
                 items.add(new SourceImportResult(request, ImportStatus.NO_COMPANY, null, null,
-                        "No company name found"));
+                        "No eligible company found in source"));
                 continue;
             }
             CompanyDossier dossier = result.orElseThrow();

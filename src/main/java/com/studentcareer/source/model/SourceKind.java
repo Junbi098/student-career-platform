@@ -4,5 +4,6 @@ package com.studentcareer.source.model;
 public enum SourceKind {
     FIXTURE,
     LOCAL_DOCUMENT,
+    WEB_OBSERVATION,
     UNCLASSIFIED
 }

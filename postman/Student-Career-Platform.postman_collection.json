@@ -93,8 +93,8 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
-              "pm.test(\"Trois dossiers conservés\", function () { pm.expect(pm.response.json().totalElements).to.eql(3); });",
-              "const page = pm.response.json(); if (page.items && page.items.length) { pm.collectionVariables.set(\"companyId\", page.items[0].id); }"
+              "pm.test(\"Trois dossiers conservés\", function () { pm.expect(pm.response.json().items.filter(x => x.source.kind === \"FIXTURE\").length).to.eql(3); });",
+              "const page = pm.response.json(); if (page.items && page.items.length) { pm.collectionVariables.set(\"companyId\", page.items.find(x => x.source.kind === \"FIXTURE\").id); }"
             ]
           }
         }
@@ -157,7 +157,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
-              "pm.test(\"Dernière page avec un dossier\", function () { pm.expect(pm.response.json().items.length).to.eql(1); });"
+              "pm.test(\"Taille attendue de la deuxième page\", function () { const page = pm.response.json(); pm.expect(page.items.length).to.eql(Math.min(2, page.totalElements - 2)); });"
             ]
           }
         }
@@ -238,7 +238,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
-              "pm.test(\"Trois dossiers conservés\", function () { pm.expect(pm.response.json().totalElements).to.eql(3); });"
+              "pm.test(\"Trois dossiers conservés\", function () { pm.expect(pm.response.json().items.filter(x => x.source.kind === \"FIXTURE\").length).to.eql(3); });"
             ]
           }
         }

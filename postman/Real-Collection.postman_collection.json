@@ -1,0 +1,97 @@
+{
+  "info": {
+    "name": "Student Career Platform - Collecte réelle limitée",
+    "description": "Action externe explicite : trois exports JSON Wikidata connus. Sources non vérifiées, aucune preuve de recrutement. Ne pas lancer cette collection en boucle. Attendre au moins une minute entre collectes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Voir les sources autorisées",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/sources",
+        "description": "Pas de Body. La requête 02 contacte Wikidata : lire summary et les éventuelles erreurs. Exécuter 04 immédiatement après 02 pour vérifier le délai minimal."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Collecter les trois fiches Wikidata",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/imports/wikidata",
+        "description": "Pas de Body. La requête 02 contacte Wikidata : lire summary et les éventuelles erreurs. Exécuter 04 immédiatement après 02 pour vérifier le délai minimal."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Collecte de données réelles\", function () { pm.expect(pm.response.json().mode).to.eql(\"WIKIDATA_OPEN_DATA\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Rechercher les entreprises réelles",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?q=mauritius",
+        "description": "Pas de Body. La requête 02 contacte Wikidata : lire summary et les éventuelles erreurs. Exécuter 04 immédiatement après 02 pour vérifier le délai minimal."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Vérifier la protection contre un réimport immédiat",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/imports/wikidata",
+        "description": "Pas de Body. La requête 02 contacte Wikidata : lire summary et les éventuelles erreurs. Exécuter 04 immédiatement après 02 pour vérifier le délai minimal."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Statut HTTP attendu\", function () { pm.response.to.have.status(429); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

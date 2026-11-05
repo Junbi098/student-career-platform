@@ -8,6 +8,7 @@ import com.studentcareer.company.importing.ImportStatus;
 import com.studentcareer.company.service.CompanyCatalogService.CatalogPage;
 import com.studentcareer.source.model.SourceKind;
 import com.studentcareer.source.model.SourceReference;
+import com.studentcareer.source.model.SourceVerificationStatus;
 import java.net.URI;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -26,9 +27,11 @@ public final class CompanyResponses {
         }
     }
 
-    public record SourceData(URI url, String title, SourceKind kind, Instant accessedAt) {
+    public record SourceData(URI url, String title, SourceKind kind, Instant accessedAt,
+                             Instant sourceUpdatedAt, String license, SourceVerificationStatus verificationStatus) {
         public static SourceData from(SourceReference source) {
-            return new SourceData(source.getUrl(), source.getTitle(), source.getKind(), source.getAccessedAt());
+            return new SourceData(source.getUrl(), source.getTitle(), source.getKind(), source.getAccessedAt(),
+                    source.getSourceUpdatedAt(), source.getLicense(), source.getVerificationStatus());
         }
     }
 
@@ -59,11 +62,15 @@ public final class CompanyResponses {
 
     public record ImportReport(String mode, int total, Map<String, Long> summary, List<ImportItem> results) {
         public static ImportReport from(BatchImportResult batch) {
+            return from(batch, "FICTIONAL_DEMO");
+        }
+
+        public static ImportReport from(BatchImportResult batch, String mode) {
             Map<String, Long> counts = new LinkedHashMap<>();
             for (ImportStatus status : ImportStatus.values()) {
                 counts.put(status.name(), batch.count(status));
             }
-            return new ImportReport("FICTIONAL_DEMO", batch.items().size(), counts,
+            return new ImportReport(mode, batch.items().size(), counts,
                     batch.items().stream().map(item -> new ImportItem(item.request().uri(), item.status(),
                             item.dossier() == null ? null : DossierData.from(item.dossier()),
                             item.duplicateOf(), item.message())).toList());

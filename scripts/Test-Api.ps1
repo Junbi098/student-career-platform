@@ -37,10 +37,13 @@ Assert-Equal $report.summary.READ_ERROR 0 'Erreurs de lecture'
 Assert-Equal $report.summary.INVALID_SOURCE 0 'Sources invalides'
 
 $page = Invoke-RestMethod "$BaseUrl/api/companies?size=2"
-Assert-Equal $page.totalElements 3 'Dossiers conserves'
-Assert-Equal $page.totalPages 2 'Pages'
+if ($page.totalElements -lt 3) { throw 'Au moins trois dossiers de demonstration sont attendus.' }
+Assert-Equal $page.totalPages ([int][Math]::Ceiling($page.totalElements / 2.0)) 'Pages'
 Assert-Equal $page.items.Count 2 'Elements de la premiere page'
-$id = $page.items[0].id
+$all = Invoke-RestMethod "$BaseUrl/api/companies?size=100"
+$fixtures = @($all.items | Where-Object { $_.source.kind -eq 'FIXTURE' })
+Assert-Equal $fixtures.Count 3 'Dossiers fictifs conserves'
+$id = $fixtures[0].id
 $detail = Invoke-RestMethod "$BaseUrl/api/companies/$id"
 Assert-Equal $detail.source.kind 'FIXTURE' 'Provenance fictive'
 Assert-Equal $detail.source.url 'classpath:/demo/company-complete.html' 'Source du dossier'
@@ -48,13 +51,13 @@ Assert-Equal $detail.source.url 'classpath:/demo/company-complete.html' 'Source 
 $filtered = Invoke-RestMethod "$BaseUrl/api/companies?q=ISLAND&industry=software&location=EBENE"
 Assert-Equal $filtered.totalElements 2 'Recherche combinee'
 $second = Invoke-RestMethod "$BaseUrl/api/companies?page=1&size=2"
-Assert-Equal $second.items.Count 1 'Derniere page'
+Assert-Equal $second.items.Count ([Math]::Min(2, $page.totalElements - 2)) 'Deuxieme page'
 
 $null = Invoke-RestMethod "$BaseUrl/api/imports/demo" -Method Post
 $again = Invoke-RestMethod "$BaseUrl/api/companies"
-Assert-Equal $again.totalElements 3 'Reimport sans ajout de dossiers'
-Assert-Equal $again.items[0].id $id 'Identifiant conserve'
+Assert-Equal $again.totalElements $page.totalElements 'Reimport sans ajout de dossiers'
+Assert-Equal (@($again.items | Where-Object { $_.source.kind -eq 'FIXTURE' })[0].id) $id 'Identifiant conserve'
 
 Assert-HttpStatus '/api/companies?size=101' 400
 Assert-HttpStatus '/api/companies/00000000-0000-0000-0000-000000000000' 404
-Write-Output 'API validee : import fictif, 3 dossiers, recherche, pagination, reimport, erreurs 400/404.'
+Write-Output 'API validee : import fictif, 3 dossiers fictifs, recherche, pagination, reimport, erreurs 400/404.'

@@ -79,3 +79,18 @@ Les routes HTTP et les champs JSON n'ont pas changé.
 - Aucun nettoyage des réglages personnels IntelliJ, de Git ou de l'environnement Windows.
 
 Les notes WEEK_2.md et WEEK_3.md sont des traces historiques ; ce fichier décrit les noms actuels.
+
+
+## Complément de collecte réelle
+
+CompanyAnalysisService accepte maintenant CompanyContentParser : l'implémentation HTML conserve
+son comportement et WikidataCompanyParser traite les fiches JSON. SourceDocument.content() remplace
+l'ancien nom html(), car un document peut contenir du HTML ou du JSON.
+
+WikidataSources définit les trois références connues. WikidataSourceReader réalise les lectures limitées,
+valide l'identité reçue et produit les dates de provenance. WikidataCompanyImportService réutilise le service
+de lot existant, limite les déclenchements puis enregistre les dossiers dans le même dépôt en mémoire.
+WikidataImportController expose GET /api/sources et POST /api/imports/wikidata, sans paramètre d'URL arbitraire.
+
+Le JSON source ajoute verificationStatus, sourceUpdatedAt et license. Les données fictives restent FICTIONAL ;
+les documents locaux et observations Web sont UNVERIFIED. Aucun statut VERIFIED n'est produit.

@@ -23,7 +23,7 @@ class SourceProvenanceTest {
         Files.writeString(file, "<h1>Fictional</h1>");
         var result = fetcher.readSource(directory.resolve(".").resolve(file.getFileName()).toUri(),
                 SourceKind.FIXTURE);
-        assertEquals("<h1>Fictional</h1>", result.html());
+        assertEquals("<h1>Fictional</h1>", result.content());
         assertEquals(file.toRealPath().toUri(), result.source().getUrl());
         assertEquals(instant, result.source().getAccessedAt());
         assertEquals(SourceKind.FIXTURE, result.source().getKind());

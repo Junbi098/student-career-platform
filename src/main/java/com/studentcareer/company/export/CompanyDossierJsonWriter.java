@@ -35,6 +35,9 @@ public class CompanyDossierJsonWriter {
         sourceData.put("url", source.getUrl().toString());
         sourceData.put("title", source.getTitle());
         sourceData.put("kind", source.getKind().name());
+        sourceData.put("verificationStatus", source.getVerificationStatus().name());
+        sourceData.put("license", source.getLicense());
+        sourceData.put("sourceUpdatedAt", source.getSourceUpdatedAt() == null ? null : source.getSourceUpdatedAt().toString());
         sourceData.put(
                 "accessedAt",
                 source.getAccessedAt().toString()

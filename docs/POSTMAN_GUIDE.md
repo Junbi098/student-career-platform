@@ -31,7 +31,7 @@ Dans IntelliJ :
 
 1. Ouvrir le projet et recharger Maven avec **Reload All Maven Projects**.
 2. Vérifier que le projet et Maven utilisent Java 21.
-3. Exécuter le goal Maven **clean package**. Attendre **BUILD SUCCESS**, 73 tests réussis.
+3. Exécuter le goal Maven **clean package**. Attendre **BUILD SUCCESS**, 100 tests réussis.
 4. Ouvrir le terminal PowerShell intégré à IntelliJ, à la racine du projet.
 5. Exécuter `.\scripts\Start-Api.ps1`.
 6. Attendre les messages `Tomcat started on port 8080` et `Started StudentCareerApplication`.
@@ -77,7 +77,7 @@ Réponse attendue : **200 OK**, avec notamment :
 {
   "status": "UP",
   "storage": "IN_MEMORY",
-  "dataMode": "EXPLICIT_FICTIONAL_DEMO_IMPORT"
+  "dataMode": "EXPLICIT_IMPORTS"
 }
 ```
 
@@ -234,3 +234,11 @@ Une réponse JSON 400/404 est différente : le serveur a bien reçu votre demand
 Dites-moi simplement : le GET status fonctionne-t-il, le POST affiche-t-il total 4,
 et le GET companies affiche-t-il totalElements 3 ? En cas de difficulté, indiquez le numéro de l'étape
 et le message affiché. Aucun commit ni push ne sera fait sans votre accord explicite.
+
+
+## Extension : données réelles
+
+Le parcours ci-dessus décrit les exemples fictifs. Un collecteur réel limité existe maintenant :
+voir REAL_COLLECTION_GUIDE.md. Si vous l'avez déjà lancé dans la même session, totalElements peut valoir 6
+au lieu de 3. Les trois fixtures restent présentes, identifiables par source.kind FIXTURE ; les trois autres
+sont WEB_OBSERVATION et UNVERIFIED. L'exercice initial de pagination est décrit pour un catalogue de trois dossiers.

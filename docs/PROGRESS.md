@@ -24,7 +24,7 @@ Ne pas démarrer la semaine suivante avant le checkpoint.
 - Aucun nouveau composant installé, aucune configuration globale Git ou Java changée.
 - Validation locale IntelliJ confirmée ; commit c35a566 poussé sur main après accord explicite.
 
-## Semaine 3 — validée localement
+## Semaine 3 — validée et publiée
 
 - API Spring Boot, catalogue en mémoire, recherche, filtres et pagination.
 - Import explicite de quatre fixtures intégrées, provenance classpath et doublons conservés.
@@ -51,9 +51,30 @@ Ne pas démarrer la semaine suivante avant le checkpoint.
 - Script Test-Api.ps1 et exemples SingleCompanyExportExample / BatchCompanyExportExample exécutés avec succès.
 - Guide débutant dans docs/POSTMAN_GUIDE.md ; serveurs temporaires arrêtés.
 - Parcours Postman validé par l’utilisateur : disponibilité, import, consultation, détail, recherche, filtres, pagination, erreurs 400/404 et réimport à total constant.
-- Commit et push de la semaine 3 et du refactoring explicitement autorisés par l’utilisateur.
+- Parcours Postman validé ; commit 4521285 poussé sur main après accord explicite.
+
+## Complément de la semaine 2 — collecte réelle initiale, validée localement
+
+- Écart de parcours reconnu : la semaine 2 livrée précédemment traitait seulement les fichiers locaux.
+- Sources mauriciennes repérées ; comparaison et décisions dans docs/SOURCES.md.
+- Portail Open Data non retenu pour l'automatisation à cause des règles d'accès actuelles.
+- Collecteur initial de trois fiches Wikidata connues, données CC0, lecture explicite et limitée.
+- Pas de recherche autonome générale sur Internet, pas de collecte d'offres ou de preuve de recrutement.
+- Parser JSON séparé, normalisation et traitement par lot existants réutilisés.
+- Traçabilité enrichie : URL lue, date de lecture, date annoncée par la source, licence et statut UNVERIFIED.
+- Délais, taille maximale, contrôle de l'identité, réponses 429/503 et refus d'accès testés localement.
+- Compilation et suite complète : 100 tests réussis, zéro échec, erreur ou test ignoré.
+- Vérification réelle du 5 novembre : 3 dossiers importés, aucune erreur ; réimport immédiat refusé en 429.
+- Catalogue mixte vérifié : 3 observations Web et 3 dossiers fictifs distincts.
+- Parcours fictif et ses 11 requêtes/17 assertions vérifiés dans ce catalogue mixte.
+- Collections Postman et guides adaptés.
+- Validation Postman utilisateur confirmée : sources, collecte, dossier Emtel, six dossiers mixtes et protection HTTP 429.
+- Commit et push du complément explicitement autorisés par l’utilisateur.
+- Le statut métier des entreprises reste non vérifié ; secteur et ville ne sont pas devinés.
+- Le catalogue reste en mémoire ; semaine 4 non commencée.
 
 ## Prochaine action
 
 Publier le checkpoint autorisé et vérifier la synchronisation Git.
-Rappeler les objectifs de la semaine suivante avant de la commencer.
+La découverte automatique élargie et le recoupement des données restent des travaux futurs explicites.
+Rappeler les objectifs de la semaine 4 avant toute persistance.

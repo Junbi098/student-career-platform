@@ -108,4 +108,15 @@ class SourceReferenceTest {
         assertThrows(IllegalArgumentException.class, () -> new SourceReference(
                 URI.create("classpath:/demo/file.html?x=1"), "Fixture", accessedAt, SourceKind.FIXTURE));
     }
+    @Test
+    void shouldDistinguishFictionalAndUnverifiedSources() {
+        var fixture = new SourceReference(URI.create("classpath:/demo/company.html"), "Fixture", accessedAt, SourceKind.FIXTURE);
+        assertEquals(SourceVerificationStatus.FICTIONAL, fixture.getVerificationStatus());
+        var web = new SourceReference(URI.create("https://example.com/company.json"), "Open data", accessedAt,
+                SourceKind.WEB_OBSERVATION, Instant.EPOCH, "CC0-1.0");
+        assertEquals(SourceVerificationStatus.UNVERIFIED, web.getVerificationStatus());
+        assertEquals(Instant.EPOCH, web.getSourceUpdatedAt());
+        assertThrows(IllegalArgumentException.class, () -> new SourceReference(
+                URI.create("file:///local.html"), "Not web", accessedAt, SourceKind.WEB_OBSERVATION));
+    }
 }

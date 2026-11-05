@@ -10,6 +10,8 @@ public class SourceReference {
     private final String title;
     private final Instant accessedAt;
     private final SourceKind kind;
+    private final Instant sourceUpdatedAt;
+    private final String license;
 
     public SourceReference(
             URI url,
@@ -20,6 +22,11 @@ public class SourceReference {
     }
 
     public SourceReference(URI url, String title, Instant accessedAt, SourceKind kind) {
+        this(url, title, accessedAt, kind, null, null);
+    }
+
+    public SourceReference(URI url, String title, Instant accessedAt, SourceKind kind,
+                           Instant sourceUpdatedAt, String license) {
         Objects.requireNonNull(url, "Source URL is required");
 
         String scheme = url.getScheme();
@@ -47,6 +54,11 @@ public class SourceReference {
         }
 
         this.kind = Objects.requireNonNull(kind, "Source kind is required");
+        if (kind == SourceKind.WEB_OBSERVATION && !web) {
+            throw new IllegalArgumentException("A web observation requires a web URL");
+        }
+        this.sourceUpdatedAt = sourceUpdatedAt;
+        this.license = license;
         this.url = url;
         this.title = title.trim();
         this.accessedAt = Objects.requireNonNull(
@@ -68,5 +80,16 @@ public class SourceReference {
     }
     public SourceKind getKind() {
         return kind;
+    }
+    public Instant getSourceUpdatedAt() {
+        return sourceUpdatedAt;
+    }
+
+    public String getLicense() {
+        return license;
+    }
+
+    public SourceVerificationStatus getVerificationStatus() {
+        return kind == SourceKind.FIXTURE ? SourceVerificationStatus.FICTIONAL : SourceVerificationStatus.UNVERIFIED;
     }
 }

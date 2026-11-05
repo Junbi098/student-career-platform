@@ -9,6 +9,6 @@ public interface SourceReader {
     SourceDocument readSource(URI sourceUri, SourceKind kind) throws IOException;
 
     default String read(URI sourceUri) throws IOException {
-        return readSource(sourceUri, SourceKind.LOCAL_DOCUMENT).html();
+        return readSource(sourceUri, SourceKind.LOCAL_DOCUMENT).content();
     }
 }

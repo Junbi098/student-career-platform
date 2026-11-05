@@ -2,7 +2,7 @@ package com.studentcareer.company.service;
 
 import com.studentcareer.company.domain.Company;
 import com.studentcareer.company.domain.CompanyDossier;
-import com.studentcareer.company.parsing.CompanyHtmlParser;
+import com.studentcareer.company.parsing.CompanyContentParser;
 import com.studentcareer.source.model.SourceDocument;
 import com.studentcareer.source.model.SourceKind;
 import com.studentcareer.source.reader.SourceReader;
@@ -13,10 +13,10 @@ import java.util.Optional;
 
 public class CompanyAnalysisService {
     private final SourceReader fetcher;
-    private final CompanyHtmlParser parser;
+    private final CompanyContentParser parser;
     private final CompanyNormalizer normalizer = new CompanyNormalizer();
 
-    public CompanyAnalysisService(SourceReader fetcher, CompanyHtmlParser parser) {
+    public CompanyAnalysisService(SourceReader fetcher, CompanyContentParser parser) {
         this.fetcher = Objects.requireNonNull(fetcher);
         this.parser = Objects.requireNonNull(parser);
     }
@@ -27,7 +27,7 @@ public class CompanyAnalysisService {
 
     public Optional<CompanyDossier> analyzeDossier(URI sourceUri, SourceKind kind) throws IOException {
         SourceDocument fetched = fetcher.readSource(sourceUri, kind);
-        return parser.parse(fetched.html()).map(normalizer::normalize)
+        return parser.parse(fetched.content()).map(normalizer::normalize)
                 .map(company -> new CompanyDossier(company, fetched.source()));
     }
 }

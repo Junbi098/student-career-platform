@@ -1,12 +1,12 @@
 # Student Career Platform
 
-Une application Java qui transforme des pages HTML en dossiers d'entreprises et permet de consulter ces dossiers avec une API.
+Une application Java qui transforme des documents HTML ou des fiches JSON Wikidata en dossiers d’entreprises et permet de les consulter avec une API.
 Pour le moment, toutes les données de démonstration sont fictives. L'application ne recherche pas encore de stages sur Internet.
 
 ## Commencer ici
 
 1. Ouvrir ce dossier dans IntelliJ et recharger Maven.
-2. Exécuter le goal Maven `clean package`. Résultat attendu : **73 tests réussis**, `BUILD SUCCESS`.
+2. Exécuter le goal Maven `clean package`. Résultat attendu : **100 tests réussis**, `BUILD SUCCESS`.
 3. Dans le terminal PowerShell d'IntelliJ, lancer :
 
 ```powershell
@@ -45,7 +45,7 @@ Arrêter le serveur efface ce catalogue temporaire. Ctrl+C arrête le lanceur.
 
 Java 21, Spring Boot 4.1.2, Maven, jsoup 1.23.2, JUnit Jupiter 6.0.3 et Surefire 3.5.6.
 Les exports existants utilisent Jackson 2.22.4 ; Spring Boot utilise Jackson 3 pour les réponses HTTP.
-Les 73 tests couvrent le parsing, les sources, les exports, les lots, les recherches et les requêtes HTTP.
+Les 100 tests couvrent le parsing, les sources, les exports, les lots, les recherches et les requêtes HTTP.
 Cinq anciens tests ont été retirés : une addition de démonstration et quatre cas d'un ancien extracteur
 qui répétaient ceux du parseur conservé. Aucune vérification métier distincte n'a été supprimée.
 
@@ -64,3 +64,36 @@ et utiliser `Test-Api.ps1 -BaseUrl http://127.0.0.1:8081`.
 Les avertissements Mockito pendant les tests sont non bloquants ; vérifier le bilan Maven final.
 Les notes WEEK_2.md et WEEK_3.md décrivent l'historique : leurs anciens noms de classes ne sont plus les noms actuels.
 Les dossiers générés target/ et les réglages personnels .idea/ restent exclus de Git.
+
+
+## Premier collecteur réel — complément de la semaine 2
+
+L'application peut maintenant lire trois fiches Wikidata connues : Mauritius Telecom, Emtel et Mauritius Commercial Bank.
+C'est un collecteur initial sur une liste préparée, pas une recherche autonome de toutes les entreprises sur Internet.
+Aucune offre de stage ou de recrutement n'est déduite de ces fiches.
+
+Une fois l'application redémarrée avec le nouveau code, dans Postman :
+
+1. `GET http://localhost:8080/api/sources` : voir les trois URL autorisées et leur licence.
+2. `POST http://localhost:8080/api/imports/wikidata`, Body none : lancer la lecture réelle des trois exports JSON.
+3. Vérifier `mode = WIKIDATA_OPEN_DATA`, puis les compteurs `summary` et les résultats par source.
+4. `GET http://localhost:8080/api/companies?q=emtel` : consulter le dossier importé, s'il a été extrait avec succès.
+
+À la vérification du 5 novembre 2026 : 3 réussites, aucune erreur. Ce résultat dépend de la disponibilité et du contenu de Wikidata.
+Une réponse HTTP 200 décrit l'exécution du lot ; seul le bilan indique combien de dossiers ont été extraits.
+Le JSON indique `source.kind = WEB_OBSERVATION`, `verificationStatus = UNVERIFIED`, l'URL lue,
+la licence et les dates. `accessedAt` date la lecture ; `sourceUpdatedAt` est la date annoncée par Wikidata,
+pas une validation indépendante. Secteur et ville restent inconnus : nous ne remplaçons pas leurs identifiants Wikidata par des suppositions.
+La localisation Mauritius provient de la déclaration du pays dans la fiche.
+
+L'import est limité à une tentative par minute. Un deuxième POST immédiat retourne **429**, avec `Retry-After`.
+Ne pas lancer cette collecte en boucle : aucun accès externe n'est déclenché au démarrage ou par un GET.
+Les anciennes données restent disponibles si une source échoue ; elles gardent leur ancienne date de lecture.
+Les doublons possibles et les données fictives restent distincts des observations Web.
+
+- [Choix de source, règles d'accès et limites](docs/SOURCES.md)
+- [Procédure Postman pour la collecte réelle](docs/REAL_COLLECTION_GUIDE.md)
+- Collection importable : `postman/Real-Collection.postman_collection.json`
+
+Les tests Maven utilisent uniquement des réponses synthétiques et des serveurs locaux, sans appeler Wikidata.
+Le contrôle réel a été effectué séparément. Le catalogue reste en mémoire en attendant la semaine 4.

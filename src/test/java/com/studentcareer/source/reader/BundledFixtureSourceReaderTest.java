@@ -18,7 +18,7 @@ class BundledFixtureSourceReaderTest {
     void shouldReadBundledFixtureAndCreateHonestProvenance() throws Exception {
         URI uri = URI.create("classpath:/demo/company-complete.html");
         var result = fetcher.readSource(uri, SourceKind.FIXTURE);
-        assertTrue(result.html().contains("Island Digital Studio"));
+        assertTrue(result.content().contains("Island Digital Studio"));
         assertEquals(uri, result.source().getUrl());
         assertEquals(instant, result.source().getAccessedAt());
         assertEquals(SourceKind.FIXTURE, result.source().getKind());

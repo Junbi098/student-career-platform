@@ -7,7 +7,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-public class CompanyHtmlParser {
+public class CompanyHtmlParser implements CompanyContentParser {
 
     public Optional<Company> parse(String html) {
         if (html == null) {

@@ -2,6 +2,8 @@ package com.studentcareer.web.error;
 
 import com.studentcareer.common.exception.InvalidRequestException;
 import com.studentcareer.company.exception.CompanyNotFoundException;
+import com.studentcareer.company.exception.CollectionRateLimitException;
+import org.springframework.http.ResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,13 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(InvalidRequestException.class)
     public ProblemDetail invalidQuery(InvalidRequestException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(CollectionRateLimitException.class)
+    public ResponseEntity<ProblemDetail> collectionRateLimit(CollectionRateLimitException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", Long.toString(exception.getRetryAfter())).body(problem);
     }
 
     @ExceptionHandler(Exception.class)
