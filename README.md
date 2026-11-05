@@ -6,7 +6,9 @@ Pour le moment, toutes les données de démonstration sont fictives. L'applicati
 ## Commencer ici
 
 1. Ouvrir ce dossier dans IntelliJ et recharger Maven.
-2. Exécuter le goal Maven `clean package`. Résultat attendu : **100 tests réussis**, `BUILD SUCCESS`.
+   Pour la première préparation locale : exécuter `.\scripts\Initialize-Database.ps1` dans le terminal.
+   Aux démarrages suivants : `.\scripts\Start-Database.ps1` avant les tests ou un Run IntelliJ.
+2. Exécuter le goal Maven `clean package`. Résultat attendu : **109 tests réussis**, `BUILD SUCCESS`.
 3. Dans le terminal PowerShell d'IntelliJ, lancer :
 
 ```powershell
@@ -39,13 +41,13 @@ Le catalogue est vide au démarrage. Une requête POST charge quatre fichiers HT
 Deux entreprises sont reconnues, une seconde source correspond à un doublon possible et un fichier ne contient pas de nom.
 L'application conserve **trois dossiers pour deux entreprises fictives distinctes**, avec leurs sources.
 Vous pouvez ensuite les consulter et les rechercher avec des requêtes GET.
-Arrêter le serveur efface ce catalogue temporaire. Ctrl+C arrête le lanceur.
+Les dossiers sont maintenant enregistrés dans PostgreSQL : arrêter le serveur ne les efface plus. Ctrl+C arrête le lanceur Java.
 
 ## Tests et outils
 
 Java 21, Spring Boot 4.1.2, Maven, jsoup 1.23.2, JUnit Jupiter 6.0.3 et Surefire 3.5.6.
 Les exports existants utilisent Jackson 2.22.4 ; Spring Boot utilise Jackson 3 pour les réponses HTTP.
-Les 100 tests couvrent le parsing, les sources, les exports, les lots, les recherches et les requêtes HTTP.
+Les 109 tests couvrent le parsing, les sources, les exports, les lots, les recherches et les requêtes HTTP.
 Cinq anciens tests ont été retirés : une addition de démonstration et quatre cas d'un ancien extracteur
 qui répétaient ceux du parseur conservé. Aucune vérification métier distincte n'a été supprimée.
 
@@ -96,4 +98,37 @@ Les doublons possibles et les données fictives restent distincts des observatio
 - Collection importable : `postman/Real-Collection.postman_collection.json`
 
 Les tests Maven utilisent uniquement des réponses synthétiques et des serveurs locaux, sans appeler Wikidata.
-Le contrôle réel a été effectué séparément. Le catalogue reste en mémoire en attendant la semaine 4.
+Le contrôle réel a été effectué séparément. Le catalogue est désormais persistant depuis la semaine 4.
+
+
+## Semaine 4 — données conservées après redémarrage
+
+PostgreSQL 17 utilise une instance dédiée au projet, sur 127.0.0.1:15432, avec deux bases séparées :
+student_career pour l'application et student_career_test pour les tests.
+Les services PostgreSQL existants sur le poste ne sont pas modifiés. Aucun Docker n'est requis.
+Les identifiants et fichiers de données restent sous .local, exclu de Git ; ne pas les déplacer dans les sources.
+Les paramètres locaux sont lus automatiquement quand IntelliJ utilise la racine du projet comme répertoire de travail.
+
+- [Vérification Postman pas à pas](docs/PERSISTENCE_GUIDE.md)
+- [Architecture, tables et tests de la semaine 4](docs/WEEK_4.md)
+- Collection : postman/Persistence.postman_collection.json, avec arrêt manuel de Java entre 03 et 04.
+
+GET /api/status affiche maintenant storage POSTGRESQL. Les dossiers, leurs URL, licences, dates et
+statuts survivent au redémarrage. verifiedAt reste null tant qu'aucune vérification indépendante n'existe.
+Flyway crée les tables ; JPA valide la structure. Les mêmes identifiants sont réutilisés au réimport.
+Les tests ne nettoient que la base suffixée _test et ne contactent pas Wikidata.
+La base applicative a été nettoyée après validation : les trois dossiers fictifs ont été retirés et les observations Web conservées.
+Les anciens dossiers en mémoire ne sont pas transférés automatiquement ; les prochains imports seront conservés.
+
+
+## Données fictives : import désactivé par défaut
+
+La base applicative conserve les observations réellement collectées. Les fixtures des tests restent
+limitées à student_career_test. POST /api/imports/demo retourne désormais 404 dans la configuration normale.
+Les tests activent explicitement app.demo.enabled=true dans leur profil isolé.
+Pour une démonstration volontaire sur une base dédiée, l'option --app.demo.enabled=true réactive le service
+et sa route. Le nettoyage manuel des seules fixtures est disponible dans scripts/Remove-FictionalData.ps1 ;
+il n'est exécuté ni au démarrage ni par Flyway.
+Le script Test-Api.ps1 vérifie maintenant le catalogue en lecture seule ; -IncludeDemo est réservé
+à un environnement de démonstration explicitement activé. Les anciennes collections de démonstration
+contiennent donc des POST qui sont volontairement indisponibles dans la configuration applicative normale.

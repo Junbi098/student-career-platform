@@ -53,7 +53,7 @@ Ne pas démarrer la semaine suivante avant le checkpoint.
 - Parcours Postman validé par l’utilisateur : disponibilité, import, consultation, détail, recherche, filtres, pagination, erreurs 400/404 et réimport à total constant.
 - Parcours Postman validé ; commit 4521285 poussé sur main après accord explicite.
 
-## Complément de la semaine 2 — collecte réelle initiale, validée localement
+## Complément de la semaine 2 — collecte réelle initiale, validée et publiée
 
 - Écart de parcours reconnu : la semaine 2 livrée précédemment traitait seulement les fichiers locaux.
 - Sources mauriciennes repérées ; comparaison et décisions dans docs/SOURCES.md.
@@ -69,12 +69,44 @@ Ne pas démarrer la semaine suivante avant le checkpoint.
 - Parcours fictif et ses 11 requêtes/17 assertions vérifiés dans ce catalogue mixte.
 - Collections Postman et guides adaptés.
 - Validation Postman utilisateur confirmée : sources, collecte, dossier Emtel, six dossiers mixtes et protection HTTP 429.
-- Commit et push du complément explicitement autorisés par l’utilisateur.
+- Commit b2279ed poussé sur main après validation Postman et accord explicite.
 - Le statut métier des entreprises reste non vérifié ; secteur et ville ne sont pas devinés.
-- Le catalogue reste en mémoire ; semaine 4 non commencée.
+- État historique à ce checkpoint : catalogue en mémoire ; persistance traitée à la semaine 4.
+
+## Semaine 4 — validée localement
+
+- PostgreSQL 17 existant réutilisé pour une instance dédiée au projet, port 15432, sans modifier les services 16/17.
+- Bases student_career et student_career_test séparées ; compte applicatif non superutilisateur.
+- Identifiants générés et données sous .local, exclu de Git ; scripts d'initialisation/démarrage/arrêt fournis.
+- Contrat CompanyRepository et adaptateur Spring Data JPA ; double en mémoire réservé aux tests unitaires.
+- Flyway V1 crée les dossiers et les sources ; Hibernate valide le schéma, sans création automatique destructive.
+- Provenance, licences, catégories et dates sauvegardées ; vérification indépendante inconnue, verifiedAt reste null.
+- Transactions, rollback, ordre stable et réimport sans ajout de lignes vérifiés sur PostgreSQL.
+- Bases de test contrôlées avant Flyway/JPA puis avant nettoyage, pour protéger la base applicative.
+- clean package : 108 tests réussis, zéro échec, erreur ou test ignoré. Aucune collecte Wikidata durant cette semaine.
+- JAR vérifié : import, arrêt de Java et du cluster dédié, redémarrage, lecture des mêmes identifiants et sources sans import.
+- Collection de persistance exécutée en deux phases, 6 requêtes et 12 assertions ; script API existant également validé.
+- Trois dossiers fictifs de vérification conservés dans la base applicative ; aucun ancien dossier mémoire transféré automatiquement.
+- Documentation et parcours Postman dans docs/WEEK_4.md et docs/PERSISTENCE_GUIDE.md.
+- Aucun commit ni push de la semaine 4 effectué.
 
 ## Prochaine action
 
 Publier le checkpoint autorisé et vérifier la synchronisation Git.
-La découverte automatique élargie et le recoupement des données restent des travaux futurs explicites.
-Rappeler les objectifs de la semaine 4 avant toute persistance.
+Rappeler les objectifs de la semaine 5 avant de la commencer.
+
+
+## Nettoyage des données fictives — autorisé par l'utilisateur
+
+- Persistance des observations Web et réimport à total 6 validés par l'utilisateur dans Postman.
+- Suppression transactionnelle des seuls dossiers FIXTURE et de leurs sources dans student_career.
+- Empreinte du contenu non fictif comparée avant/après dans la transaction : inchangée.
+- Résultat du nettoyage : 3 dossiers WEB_OBSERVATION, 0 dossier FIXTURE.
+- Import de démo et service associés désactivés par défaut, activables explicitement par app.demo.enabled.
+- Tests d'intégration activant la démo uniquement dans leur base dédiée ; test du refus 404 ajouté.
+- Script Test-Api.ps1 adapté : lecture seule par défaut, mode fictif explicite avec -IncludeDemo.
+- Bilan final : 109 tests réussis, zéro échec, erreur ou test ignoré.
+- Programme vérifié après nettoyage : 3 observations Web, aucune fixture, route de démo en 404 et script de lecture seule validé.
+- Java temporaire de vérification arrêté ; redémarrage utilisateur nécessaire pour appliquer la désactivation à son ancien processus.
+- Persistance des observations réelles, réimport et nettoyage validés par l’utilisateur.
+- Commit et push de la semaine 4, nettoyage inclus, explicitement autorisés.

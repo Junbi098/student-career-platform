@@ -2,16 +2,14 @@ package com.studentcareer.company.repository;
 
 import com.studentcareer.company.domain.CompanyCatalogEntry;
 import com.studentcareer.company.importing.SourceImportResult;
-import java.nio.charset.StandardCharsets;
+import com.studentcareer.company.domain.CompanyDossierIdentity;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public class InMemoryCompanyRepository {
+public class InMemoryCompanyRepository implements CompanyRepository {
     private final Map<UUID, CompanyCatalogEntry> entries = new LinkedHashMap<>();
 
     /** Each source retains its own dossier. Reimporting that source updates it in place. */
@@ -21,8 +19,7 @@ public class InMemoryCompanyRepository {
                 continue;
             }
             var source = item.dossier().getSource();
-            UUID id = UUID.nameUUIDFromBytes((source.getKind() + "|" + source.getUrl())
-                    .getBytes(StandardCharsets.UTF_8));
+            UUID id = CompanyDossierIdentity.from(source);
             entries.put(id, new CompanyCatalogEntry(id, item.dossier(), item.status(), item.duplicateOf()));
         }
     }

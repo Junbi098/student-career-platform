@@ -95,7 +95,7 @@ il garde sa date précédente et ne doit pas être présenté comme actualisé. 
 
 L'identité du dossier repose sur la catégorie et l'URL : une source correspond à un dossier. Les différentes
 sources d'une entreprise ne sont pas fusionnées. Le modèle entreprise/sources et la gestion de leur historique
-seront précisés pour la persistance ; aucune base n'est encore ajoutée.
+sont maintenant stockés en PostgreSQL comme dossiers d’observation, sans fusion automatique ; voir WEEK_4.md.
 
 ## Vérification obtenue
 

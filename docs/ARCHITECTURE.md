@@ -9,7 +9,8 @@ com.studentcareer
 │   ├── domain                 Company, CompanyDossier, CompanyCatalogEntry
 │   ├── parsing                lecture des champs dans le HTML
 │   ├── service                analyse, normalisation et recherche
-│   ├── repository             stockage temporaire des dossiers
+│   ├── repository             contrat de stockage des dossiers
+│   ├── persistence            entités JPA et adaptation PostgreSQL
 │   ├── importing              traitement par lot et import de démonstration
 │   ├── export                 génération des fichiers JSON
 │   └── exception              dossier introuvable
@@ -23,7 +24,7 @@ com.studentcareer
 └── common.exception           requête invalide
 ```
 
-Les tests suivent les mêmes packages sous src/test/java. Les exemples d'export manuels sont
+Les tests suivent les mêmes packages sous src/test/java. Le double en mémoire y est réservé aux tests unitaires. Les exemples d'export manuels sont
 séparés dans le package examples, sous src/test/java ; ils ne font pas partie du serveur.
 
 ## Suivre une demande Postman dans le code
@@ -32,7 +33,7 @@ Pour GET /api/companies :
 
 1. CompanyController reçoit les paramètres.
 2. CompanyCatalogService applique la recherche et la pagination.
-3. InMemoryCompanyRepository fournit les dossiers enregistrés.
+3. CompanyRepository fournit les dossiers via JpaCompanyRepository et PostgreSQL.
 4. CompanyResponses prépare les champs de la réponse JSON.
 
 Pour POST /api/imports/demo :
@@ -94,3 +95,12 @@ WikidataImportController expose GET /api/sources et POST /api/imports/wikidata, 
 
 Le JSON source ajoute verificationStatus, sourceUpdatedAt et license. Les données fictives restent FICTIONAL ;
 les documents locaux et observations Web sont UNVERIFIED. Aucun statut VERIFIED n'est produit.
+
+
+## Semaine 4 — persistance
+
+Les services dépendent du contrat CompanyRepository. L'implémentation JpaCompanyRepository et les entités
+CompanyDossierEntity / SourceReferenceEntity sont dans company.persistence. Le double en mémoire ne
+reste que dans src/test/java. Flyway crée les tables avant leur validation par Hibernate.
+L'adaptateur retourne les objets métier déjà utilisés par les contrôleurs : les routes restent inchangées.
+Voir WEEK_4.md pour le modèle d'observation, l'isolation des tests et le schéma.

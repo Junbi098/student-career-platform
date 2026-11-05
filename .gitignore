@@ -33,3 +33,5 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Local PostgreSQL data and credentials ###
+.local/

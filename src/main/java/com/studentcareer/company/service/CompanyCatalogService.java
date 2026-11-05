@@ -3,7 +3,7 @@ package com.studentcareer.company.service;
 import com.studentcareer.common.exception.InvalidRequestException;
 import com.studentcareer.company.domain.CompanyCatalogEntry;
 import com.studentcareer.company.exception.CompanyNotFoundException;
-import com.studentcareer.company.repository.InMemoryCompanyRepository;
+import com.studentcareer.company.repository.CompanyRepository;
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Locale;
@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CompanyCatalogService {
-    private final InMemoryCompanyRepository catalog;
+    private final CompanyRepository catalog;
 
-    public CompanyCatalogService(InMemoryCompanyRepository catalog) {
+    public CompanyCatalogService(CompanyRepository catalog) {
         this.catalog = catalog;
     }
 

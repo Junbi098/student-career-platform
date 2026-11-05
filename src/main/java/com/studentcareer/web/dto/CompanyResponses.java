@@ -28,10 +28,10 @@ public final class CompanyResponses {
     }
 
     public record SourceData(URI url, String title, SourceKind kind, Instant accessedAt,
-                             Instant sourceUpdatedAt, String license, SourceVerificationStatus verificationStatus) {
+                             Instant sourceUpdatedAt, String license, SourceVerificationStatus verificationStatus, Instant verifiedAt) {
         public static SourceData from(SourceReference source) {
             return new SourceData(source.getUrl(), source.getTitle(), source.getKind(), source.getAccessedAt(),
-                    source.getSourceUpdatedAt(), source.getLicense(), source.getVerificationStatus());
+                    source.getSourceUpdatedAt(), source.getLicense(), source.getVerificationStatus(), null);
         }
     }
 

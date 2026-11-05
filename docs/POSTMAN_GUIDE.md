@@ -1,3 +1,7 @@
+> Ce guide décrit le parcours fictif de démonstration. L'import /api/imports/demo est maintenant
+> désactivé par défaut : utiliser REAL_COLLECTION_GUIDE.md pour les données réelles et GET /api/companies
+> pour leur consultation. Les tests automatisés conservent leur propre base et activent explicitement la démo.
+
 # Comprendre et tester l'API avec Postman
 
 ## 1. Ce que fait l'application
@@ -30,8 +34,8 @@ Par exemple, `"name": "Island Digital Studio"` signifie que le champ name contie
 Dans IntelliJ :
 
 1. Ouvrir le projet et recharger Maven avec **Reload All Maven Projects**.
-2. Vérifier que le projet et Maven utilisent Java 21.
-3. Exécuter le goal Maven **clean package**. Attendre **BUILD SUCCESS**, 100 tests réussis.
+2. Vérifier que le projet et Maven utilisent Java 21, puis lancer scripts/Start-Database.ps1 dans le terminal.
+3. Exécuter le goal Maven **clean package**. Attendre **BUILD SUCCESS**, 109 tests réussis.
 4. Ouvrir le terminal PowerShell intégré à IntelliJ, à la racine du projet.
 5. Exécuter `.\scripts\Start-Api.ps1`.
 6. Attendre les messages `Tomcat started on port 8080` et `Started StudentCareerApplication`.
@@ -76,13 +80,12 @@ Réponse attendue : **200 OK**, avec notamment :
 ```json
 {
   "status": "UP",
-  "storage": "IN_MEMORY",
+  "storage": "POSTGRESQL",
   "dataMode": "EXPLICIT_IMPORTS"
 }
 ```
 
-UP signifie que votre programme répond. IN_MEMORY indique que les dossiers seront gardés seulement
-pendant cette exécution. Cette réponse ne signifie pas qu'un site d'emploi a été consulté.
+UP signifie que votre programme répond. POSTGRESQL indique que les dossiers sont désormais enregistrés sur disque. Cette réponse ne signifie pas qu'un site d'emploi a été consulté.
 
 ## 5. Regarder le catalogue vide
 
@@ -222,8 +225,8 @@ Un texte qui n'est pas un UUID, par exemple `abc`, donne 400.
 Renvoyer le POST d'import puis le GET du catalogue : il doit toujours y avoir **3 dossiers**.
 Les mêmes sources sont actualisées, elles ne sont pas ajoutées une seconde fois.
 
-Arrêter l'application avec Ctrl+C, puis la relancer. Le catalogue redevient vide : c'est le
-comportement actuel du stockage en mémoire. Nous ajouterons la persistance lors d'une étape suivante.
+Arrêter l’application avec Ctrl+C, puis la relancer. Le catalogue conserve désormais ses dossiers grâce à PostgreSQL.
+Voir PERSISTENCE_GUIDE.md pour vérifier cette conservation sans refaire d’import.
 
 Si Postman affiche `Could not send request` ou `ECONNREFUSED`, vérifier que Java fonctionne encore,
 que le port est le bon et que l'adresse commence par `http://`, pas `https://`.
@@ -242,3 +245,8 @@ Le parcours ci-dessus décrit les exemples fictifs. Un collecteur réel limité 
 voir REAL_COLLECTION_GUIDE.md. Si vous l'avez déjà lancé dans la même session, totalElements peut valoir 6
 au lieu de 3. Les trois fixtures restent présentes, identifiables par source.kind FIXTURE ; les trois autres
 sont WEB_OBSERVATION et UNVERIFIED. L'exercice initial de pagination est décrit pour un catalogue de trois dossiers.
+
+
+Mise à jour semaine 4 : démarrer la base dédiée avec scripts/Start-Database.ps1 avant le Run IntelliJ
+ou les tests. Les anciennes indications de catalogue initialement vide ne s'appliquent qu'à une base
+neuve : les dossiers persistés sont relus aux démarrages suivants. Voir PERSISTENCE_GUIDE.md.

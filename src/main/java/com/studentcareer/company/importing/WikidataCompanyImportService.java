@@ -2,7 +2,7 @@ package com.studentcareer.company.importing;
 
 import com.studentcareer.company.exception.CollectionRateLimitException;
 import com.studentcareer.company.parsing.WikidataCompanyParser;
-import com.studentcareer.company.repository.InMemoryCompanyRepository;
+import com.studentcareer.company.repository.CompanyRepository;
 import com.studentcareer.company.service.CompanyAnalysisService;
 import com.studentcareer.source.model.SourceKind;
 import com.studentcareer.source.reader.SourceReader;
@@ -16,17 +16,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class WikidataCompanyImportService {
-    private final InMemoryCompanyRepository repository;
+    private final CompanyRepository repository;
     private final CompanyBatchImportService batch;
     private final Clock clock;
     private Instant lastAttempt;
 
     @Autowired
-    public WikidataCompanyImportService(InMemoryCompanyRepository repository) {
+    public WikidataCompanyImportService(CompanyRepository repository) {
         this(repository, new WikidataSourceReader(), Clock.systemUTC());
     }
 
-    WikidataCompanyImportService(InMemoryCompanyRepository repository, SourceReader reader, Clock clock) {
+    WikidataCompanyImportService(CompanyRepository repository, SourceReader reader, Clock clock) {
         this.repository = repository;
         this.clock = clock;
         this.batch = new CompanyBatchImportService(new CompanyAnalysisService(reader, new WikidataCompanyParser()));

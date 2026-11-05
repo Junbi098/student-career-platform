@@ -4,6 +4,7 @@ import com.studentcareer.common.exception.InvalidRequestException;
 import com.studentcareer.company.exception.CompanyNotFoundException;
 import com.studentcareer.company.exception.CollectionRateLimitException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,12 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .header("Retry-After", Long.toString(exception.getRetryAfter())).body(problem);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ProblemDetail databaseUnavailable(DataAccessException exception) {
+        LOG.error("Database operation failed", exception);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, "Database operation unavailable");
     }
 
     @ExceptionHandler(Exception.class)

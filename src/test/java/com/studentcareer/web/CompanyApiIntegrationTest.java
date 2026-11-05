@@ -9,14 +9,30 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import com.studentcareer.support.TestDatabaseSafetyInitializer;
+import com.studentcareer.support.TestDatabaseCleanup;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ActiveProfiles("test")
+@ContextConfiguration(initializers = TestDatabaseSafetyInitializer.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CompanyApiIntegrationTest {
     @LocalServerPort int port;
+    @Autowired JdbcTemplate jdbc;
+
+    @BeforeEach
+    void resetIsolatedTestDatabase() {
+        TestDatabaseCleanup.clear(jdbc);
+    }
+
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -41,7 +57,7 @@ class CompanyApiIntegrationTest {
     @Test
     void shouldImportSearchPaginateAndReadDossiersOverRealHttp() throws Exception {
         assertEquals(0, get("/api/companies").path("totalElements").asInt());
-        assertEquals("IN_MEMORY", get("/api/status").path("storage").asText());
+        assertEquals("POSTGRESQL", get("/api/status").path("storage").asText());
         var imported = request("POST", "/api/imports/demo", null);
         assertEquals(200, imported.statusCode(), imported.body());
         JsonNode report = mapper.readTree(imported.body());

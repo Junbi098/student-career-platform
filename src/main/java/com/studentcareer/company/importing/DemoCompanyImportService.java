@@ -4,7 +4,7 @@ import com.studentcareer.company.importing.BatchImportResult;
 import com.studentcareer.company.importing.CompanyBatchImportService;
 import com.studentcareer.company.importing.SourceImportRequest;
 import com.studentcareer.company.parsing.CompanyHtmlParser;
-import com.studentcareer.company.repository.InMemoryCompanyRepository;
+import com.studentcareer.company.repository.CompanyRepository;
 import com.studentcareer.company.service.CompanyAnalysisService;
 import com.studentcareer.source.model.SourceKind;
 import com.studentcareer.source.reader.BundledFixtureSourceReader;
@@ -12,13 +12,15 @@ import java.net.URI;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Service
+@ConditionalOnProperty(name = "app.demo.enabled", havingValue = "true")
 public class DemoCompanyImportService {
-    private final InMemoryCompanyRepository catalog;
+    private final CompanyRepository catalog;
     private final CompanyBatchImportService batch;
 
-    public DemoCompanyImportService(InMemoryCompanyRepository catalog) {
+    public DemoCompanyImportService(CompanyRepository catalog) {
         this.catalog = catalog;
         this.batch = new CompanyBatchImportService(new CompanyAnalysisService(
                 new BundledFixtureSourceReader(Clock.systemUTC()), new CompanyHtmlParser()));

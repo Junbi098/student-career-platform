@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "Student Career Platform - Persistance PostgreSQL",
+    "description": "01 à 03 ; arrêter et relancer Java ; 04 à 06. Consulte les observations existantes sans créer de données fictives. La route de démonstration doit retourner 404.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8080",
+      "type": "string"
+    },
+    {
+      "key": "savedIds",
+      "value": ""
+    },
+    {
+      "key": "savedCount",
+      "value": ""
+    },
+    {
+      "key": "savedSources",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Vérifier PostgreSQL",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/status",
+        "description": "Parcours réel sans import fictif. Après 03, arrêter puis relancer Java. Exécuter 04 sans nouvel import. Le POST 06 doit être refusé."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Stockage PostgreSQL\", function () { pm.expect(pm.response.json().storage).to.eql(\"POSTGRESQL\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Vérifier le catalogue réel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?size=100",
+        "description": "Parcours réel sans import fictif. Après 03, arrêter puis relancer Java. Exécuter 04 sans nouvel import. Le POST 06 doit être refusé."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Aucune fixture dans le catalogue\", function () { pm.expect(pm.response.json().items.every(x => x.source.kind !== \"FIXTURE\")).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Mémoriser les dossiers avant arrêt",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?size=100",
+        "description": "Parcours réel sans import fictif. Après 03, arrêter puis relancer Java. Exécuter 04 sans nouvel import. Le POST 06 doit être refusé."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "const page=pm.response.json(); pm.collectionVariables.set(\"savedIds\", JSON.stringify(page.items.map(x=>x.id))); pm.collectionVariables.set(\"savedCount\", String(page.totalElements)); pm.collectionVariables.set(\"savedSources\", JSON.stringify(page.items.map(x=>x.source)));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Après redémarrage, retrouver les mêmes dossiers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?size=100",
+        "description": "Parcours réel sans import fictif. Après 03, arrêter puis relancer Java. Exécuter 04 sans nouvel import. Le POST 06 doit être refusé."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Identifiants conservés\", function () { pm.expect(JSON.stringify(pm.response.json().items.map(x=>x.id))).to.eql(pm.collectionVariables.get(\"savedIds\")); });",
+              "pm.test(\"Nombre conservé\", function () { pm.expect(String(pm.response.json().totalElements)).to.eql(pm.collectionVariables.get(\"savedCount\")); });",
+              "pm.test(\"Provenances conservées sans nouvel import\", function () { pm.expect(JSON.stringify(pm.response.json().items.map(x=>x.source))).to.eql(pm.collectionVariables.get(\"savedSources\")); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Retrouver Emtel",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/companies?q=emtel",
+        "description": "Parcours réel sans import fictif. Après 03, arrêter puis relancer Java. Exécuter 04 sans nouvel import. Le POST 06 doit être refusé."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+              "pm.test(\"Observation Web conservée\", function () { pm.expect(pm.response.json().items.some(x => x.source.kind === \"WEB_OBSERVATION\")).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Vérifier que l’import fictif est désactivé",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/imports/demo",
+        "description": "Parcours réel sans import fictif. Après 03, arrêter puis relancer Java. Exécuter 04 sans nouvel import. Le POST 06 doit être refusé."
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Import fictif indisponible\", function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

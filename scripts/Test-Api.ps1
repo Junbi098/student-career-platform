@@ -1,5 +1,6 @@
 param(
-    [string]$BaseUrl = 'http://127.0.0.1:8080'
+    [string]$BaseUrl = 'http://127.0.0.1:8080',
+    [switch]$IncludeDemo
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,8 +25,21 @@ function Assert-HttpStatus([string]$Path, [int]$Expected) {
 
 $status = Invoke-RestMethod "$BaseUrl/api/status"
 Assert-Equal $status.status 'UP' 'Application disponible'
-Assert-Equal $status.storage 'IN_MEMORY' 'Stockage temporaire'
+Assert-Equal $status.storage 'POSTGRESQL' 'Stockage persistant'
 
+if (-not $IncludeDemo) {
+    $page = Invoke-RestMethod "$BaseUrl/api/companies?size=2"
+    if ($page.items.Count -gt 0) {
+        $detail = Invoke-RestMethod "$BaseUrl/api/companies/$($page.items[0].id)"
+        Assert-Equal $detail.id $page.items[0].id 'Lecture du dossier'
+    }
+    Assert-HttpStatus '/api/companies?size=101' 400
+    Assert-HttpStatus '/api/companies/00000000-0000-0000-0000-000000000000' 404
+    Write-Output 'API validee en lecture seule : PostgreSQL, catalogue, detail et erreurs 400/404.'
+    return
+}
+
+# Demo mode must first be explicitly enabled in an isolated environment.
 # Explicitly load fictional bundled data; never read a user-supplied file or web URL.
 $report = Invoke-RestMethod "$BaseUrl/api/imports/demo" -Method Post
 Assert-Equal $report.mode 'FICTIONAL_DEMO' 'Nature des donnees'

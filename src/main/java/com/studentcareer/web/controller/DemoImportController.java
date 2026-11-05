@@ -6,8 +6,10 @@ import com.studentcareer.web.dto.CompanyResponses;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @RestController
+@ConditionalOnProperty(name = "app.demo.enabled", havingValue = "true")
 public class DemoImportController {
     private final DemoCompanyImportService service;
 

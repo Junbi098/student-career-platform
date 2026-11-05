@@ -6,12 +6,12 @@ Le POST de démonstration continue de lire les fichiers fictifs du projet.
 Le nouveau POST Wikidata contacte réellement trois exports JSON connus sur Internet.
 Il ne cherche pas toutes les entreprises et ne collecte aucune offre de stage.
 
-Le catalogue reste en mémoire. L'API ne contacte jamais Wikidata au démarrage : vous déclenchez l'action.
+Le catalogue est désormais enregistré dans PostgreSQL. L'API ne contacte jamais Wikidata au démarrage : vous déclenchez l'action.
 
 ## Préparer le nouveau code
 
 1. Arrêter l'ancienne application dans IntelliJ, avec Stop.
-2. Recharger Maven si nécessaire puis lancer clean package : **100 tests réussis**, BUILD SUCCESS.
+2. Recharger Maven si nécessaire puis lancer clean package : **109 tests réussis**, BUILD SUCCESS.
 3. Relancer StudentCareerApplication, avec les mêmes VM options qui fonctionnaient auparavant.
    Alternative : `.\scripts\Start-Api.ps1` dans le terminal PowerShell du projet.
 4. Vérifier GET http://localhost:8080/api/status : UP.
@@ -75,10 +75,10 @@ s'être écoulée et la nouvelle collecte serait à nouveau permise.
 
 ## 5 — Conserver les exemples fictifs séparés
 
-Vous pouvez aussi lancer POST /api/imports/demo. Avec les deux imports réussis, le catalogue contient
+Le POST /api/imports/demo est désormais désactivé par défaut. Dans un environnement de démonstration dédié où il est explicitement réactivé, Avec les deux imports réussis, le catalogue contient
 six dossiers : trois observations Web et trois dossiers fictifs. Les catégories restent différentes.
 Les requêtes de démonstration et le script Test-Api.ps1 vérifient les trois fixtures sans confondre le total général.
-Après redémarrage, tous ces dossiers disparaissent jusqu'au prochain import : la base viendra ensuite.
+Après redémarrage, ces dossiers restent disponibles grâce à PostgreSQL.
 
 La collection réelle est dans postman/Real-Collection.postman_collection.json. Importer ce fichier dans
 Postman si souhaité, ou créer les requêtes manuellement comme précédemment.
@@ -87,3 +87,8 @@ Les tests automatisés Maven, eux, ne contactent jamais Wikidata.
 
 Pour l'approbation du checkpoint : indiquer les compteurs du POST et si le dossier Emtel apparaît avec
 sa source et le statut UNVERIFIED. Aucun commit ou push ne sera fait sans accord explicite.
+
+
+Mise à jour semaine 4 : démarrer la base dédiée avec scripts/Start-Database.ps1 avant le Run IntelliJ
+ou les tests. Les anciennes indications de catalogue initialement vide ne s'appliquent qu'à une base
+neuve : les dossiers persistés sont relus aux démarrages suivants. Voir PERSISTENCE_GUIDE.md.
